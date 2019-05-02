@@ -1,0 +1,13 @@
+[package]
+name = "mmime"
+version = "0.1.0"
+authors = ["dignifiedquire <dignifiedquire@users.noreply.github.com>"]
+edition = "2018"
+license = "MIT"
+
+[dependencies]
+libc = "0.2.54"
+c2rust-bitfields = "0.1.0"
+
+[build-dependencies]
+cc = "1.0.36"
