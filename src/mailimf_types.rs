@@ -598,7 +598,7 @@ pub unsafe fn mailimf_mailbox_list_new(mut mb_list: *mut clist) -> *mut mailimf_
     (*mbl).mb_list = mb_list;
     return mbl;
 }
-#[no_mangle]
+
 pub unsafe fn mailimf_address_list_new(mut ad_list: *mut clist) -> *mut mailimf_address_list {
     let mut addr_list: *mut mailimf_address_list = 0 as *mut mailimf_address_list;
     addr_list = malloc(::std::mem::size_of::<mailimf_address_list>() as libc::size_t)

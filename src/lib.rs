@@ -31,6 +31,7 @@ pub mod mailmime_types_helper;
 pub mod mailmime_write_generic;
 pub mod mailmime_write_mem;
 pub mod mmapstring;
+pub mod other;
 
 pub use self::carray::*;
 pub use self::charconv::*;
@@ -49,10 +50,7 @@ pub use self::mailmime_types_helper::*;
 pub use self::mailmime_write_generic::*;
 pub use self::mailmime_write_mem::*;
 pub use self::mmapstring::*;
-pub use self::x::{
-    mailprivacy_prepare_mime, MAILIMF_ERROR_FILE, MAILIMF_ERROR_INVAL, MAILIMF_ERROR_MEMORY,
-    MAILIMF_ERROR_PARSE, MAILIMF_NO_ERROR,
-};
+pub use self::other::*;
 
 #[cfg(test)]
 mod tests {
