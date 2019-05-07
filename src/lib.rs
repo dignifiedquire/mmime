@@ -20,6 +20,7 @@ pub mod chash;
 pub mod clist;
 pub mod mailimf;
 pub mod mailimf_types;
+pub mod mailimf_types_helper;
 pub mod mailimf_write_generic;
 pub mod mailmime;
 pub mod mailmime_content;
@@ -28,6 +29,7 @@ pub mod mailmime_disposition;
 pub mod mailmime_types;
 pub mod mailmime_types_helper;
 pub mod mailmime_write_generic;
+pub mod mailmime_write_mem;
 pub mod mmapstring;
 
 pub use self::carray::*;
@@ -36,6 +38,7 @@ pub use self::chash::*;
 pub use self::clist::*;
 pub use self::mailimf::*;
 pub use self::mailimf_types::*;
+pub use self::mailimf_types_helper::*;
 pub use self::mailimf_write_generic::*;
 pub use self::mailmime::*;
 pub use self::mailmime_content::*;
@@ -44,8 +47,12 @@ pub use self::mailmime_disposition::*;
 pub use self::mailmime_types::*;
 pub use self::mailmime_types_helper::*;
 pub use self::mailmime_write_generic::*;
+pub use self::mailmime_write_mem::*;
 pub use self::mmapstring::*;
-pub use self::x::mailprivacy_prepare_mime;
+pub use self::x::{
+    mailprivacy_prepare_mime, MAILIMF_ERROR_FILE, MAILIMF_ERROR_INVAL, MAILIMF_ERROR_MEMORY,
+    MAILIMF_ERROR_PARSE, MAILIMF_NO_ERROR,
+};
 
 #[cfg(test)]
 mod tests {
