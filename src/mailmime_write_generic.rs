@@ -1497,30 +1497,8 @@ pub unsafe fn mailmime_data_write_driver(
     let mut fd: libc::c_int = 0;
     let mut r: libc::c_int = 0;
     let mut text: *mut libc::c_char = 0 as *mut libc::c_char;
-    let mut buf = libc::stat {
-        st_dev: 0,
-        st_mode: 0,
-        st_nlink: 0,
-        st_ino: 0,
-        st_uid: 0,
-        st_gid: 0,
-        st_rdev: 0,
-        st_size: 0,
-        st_blocks: 0,
-        st_blksize: 0,
-        st_flags: 0,
-        st_gen: 0,
-        st_lspare: 0,
-        st_qspare: [0; 2],
-        st_atime: 0,
-        st_atime_nsec: 0,
-        st_birthtime: 0,
-        st_birthtime_nsec: 0,
-        st_ctime: 0,
-        st_ctime_nsec: 0,
-        st_mtime: 0,
-        st_mtime_nsec: 0,
-    };
+    let mut buf: *mut libc::stat = std::ptr::null_mut();
+
     let mut res: libc::c_int = 0;
     match (*mime_data).dt_type {
         0 => {
@@ -1556,15 +1534,15 @@ pub unsafe fn mailmime_data_write_driver(
                 res = MAILIMF_ERROR_FILE as libc::c_int;
                 current_block = 10275258781883576179;
             } else {
-                r = fstat(fd, &mut buf);
+                r = fstat(fd, buf);
                 if r < 0i32 {
                     res = MAILIMF_ERROR_FILE as libc::c_int;
                     current_block = 5221028069996397600;
                 } else {
-                    if buf.st_size != 0i32 as libc::c_longlong {
+                    if (*buf).st_size != 0i32 as libc::c_longlong {
                         text = mmap(
                             0 as *mut libc::c_void,
-                            buf.st_size as size_t,
+                            (*buf).st_size as size_t,
                             0x1i32,
                             0x2i32,
                             fd,
@@ -1580,7 +1558,7 @@ pub unsafe fn mailmime_data_write_driver(
                                     data,
                                     col,
                                     text,
-                                    buf.st_size as size_t,
+                                    (*buf).st_size as size_t,
                                 );
                                 if r != MAILIMF_NO_ERROR as libc::c_int {
                                     res = r;
@@ -1596,7 +1574,7 @@ pub unsafe fn mailmime_data_write_driver(
                                     (*mime_data).dt_encoding,
                                     istext,
                                     text,
-                                    buf.st_size as size_t,
+                                    (*buf).st_size as size_t,
                                 );
                                 if r != MAILIMF_NO_ERROR as libc::c_int {
                                     res = r;
@@ -1607,11 +1585,11 @@ pub unsafe fn mailmime_data_write_driver(
                             }
                             match current_block {
                                 1055471768422549395 => {
-                                    munmap(text as *mut libc::c_void, buf.st_size as size_t);
+                                    munmap(text as *mut libc::c_void, (*buf).st_size as size_t);
                                     current_block = 5221028069996397600;
                                 }
                                 _ => {
-                                    munmap(text as *mut libc::c_void, buf.st_size as size_t);
+                                    munmap(text as *mut libc::c_void, (*buf).st_size as size_t);
                                     current_block = 9853141518545631134;
                                 }
                             }
