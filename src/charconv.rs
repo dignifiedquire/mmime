@@ -1,138 +1,21 @@
 use libc;
-extern "C" {
-    #[no_mangle]
-    fn iconv_close(_cd: iconv_t) -> libc::c_int;
-    #[no_mangle]
-    fn free(_: *mut libc::c_void);
-    #[no_mangle]
-    fn realloc(_: *mut libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn strlen(_: *const libc::c_char) -> libc::c_ulong;
-    #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn iconv(
-        __cd: iconv_t,
-        __inbuf: *mut *mut libc::c_char,
-        __inbytesleft: *mut size_t,
-        __outbuf: *mut *mut libc::c_char,
-        __outbytesleft: *mut size_t,
-    ) -> size_t;
-    #[no_mangle]
-    fn __error() -> *mut libc::c_int;
-    #[no_mangle]
-    fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn iconv_open(__tocode: *const libc::c_char, __fromcode: *const libc::c_char) -> iconv_t;
-    #[no_mangle]
-    fn strcasecmp(_: *const libc::c_char, _: *const libc::c_char) -> libc::c_int;
-    #[no_mangle]
-    fn mmap_string_free(string: *mut MMAPString);
-    #[no_mangle]
-    fn mmap_string_ref(string: *mut MMAPString) -> libc::c_int;
-    #[no_mangle]
-    fn mmap_string_sized_new(dfl_size: size_t) -> *mut MMAPString;
-    #[no_mangle]
-    fn mmap_string_set_size(string: *mut MMAPString, len: size_t) -> *mut MMAPString;
-    #[no_mangle]
-    fn mmap_string_unref(str: *mut libc::c_char) -> libc::c_int;
-}
-pub type __darwin_size_t = libc::c_ulong;
-pub type size_t = __darwin_size_t;
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: charconv.h,v 1.13 2006/06/16 09:25:23 smarinier Exp $
- */
-pub type unnamed = libc::c_uint;
-pub const MAIL_CHARCONV_ERROR_CONV: unnamed = 3;
-pub const MAIL_CHARCONV_ERROR_MEMORY: unnamed = 2;
-pub const MAIL_CHARCONV_ERROR_UNKNOWN_CHARSET: unnamed = 1;
-pub const MAIL_CHARCONV_NO_ERROR: unnamed = 0;
-pub type iconv_t = *mut libc::c_void;
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: mmapstring.h,v 1.14 2008/02/28 14:06:27 colinleroy Exp $
- */
-/*
-#define TMPDIR "/tmp"
-*/
-pub type MMAPString = _MMAPString;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _MMAPString {
-    pub str_0: *mut libc::c_char,
-    pub len: size_t,
-    pub allocated_len: size_t,
-    pub fd: libc::c_int,
-    pub mmapped_size: size_t,
-}
+
+use crate::mmapstring::*;
+use crate::x::*;
+
+pub const MAIL_CHARCONV_ERROR_CONV: libc::c_uint = 3;
+pub const MAIL_CHARCONV_ERROR_MEMORY: libc::c_uint = 2;
+pub const MAIL_CHARCONV_ERROR_UNKNOWN_CHARSET: libc::c_uint = 1;
+pub const MAIL_CHARCONV_NO_ERROR: libc::c_uint = 0;
+
 /* *
 *	define your own conversion.
 *		- result is big enough to contain your converted string
 *		- result_len contain the maximum size available (out value must contain the final converted size)
 *		- your conversion return an error code based on upper enum values
 */
-#[no_mangle]
 pub static mut extended_charconv: Option<
-    unsafe extern "C" fn(
+    unsafe fn(
         _: *const libc::c_char,
         _: *const libc::c_char,
         _: *const libc::c_char,
@@ -141,8 +24,8 @@ pub static mut extended_charconv: Option<
         _: *mut size_t,
     ) -> libc::c_int,
 > = None;
-#[no_mangle]
-pub unsafe extern "C" fn charconv(
+
+pub unsafe fn charconv(
     mut tocode: *const libc::c_char,
     mut fromcode: *const libc::c_char,
     mut str: *const libc::c_char,
@@ -236,40 +119,8 @@ pub unsafe extern "C" fn charconv(
     }
     return res;
 }
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: charconv.c,v 1.25 2011/03/29 14:39:55 hoa Exp $
- */
-unsafe extern "C" fn mail_iconv(
+
+unsafe fn mail_iconv(
     mut cd: iconv_t,
     mut inbuf: *mut *const libc::c_char,
     mut inbytesleft: *mut size_t,
@@ -337,7 +188,7 @@ unsafe extern "C" fn mail_iconv(
         return ret;
     }
 }
-unsafe extern "C" fn get_valid_charset(mut fromcode: *const libc::c_char) -> *const libc::c_char {
+unsafe fn get_valid_charset(mut fromcode: *const libc::c_char) -> *const libc::c_char {
     if strcasecmp(fromcode, b"GB2312\x00" as *const u8 as *const libc::c_char) == 0i32
         || strcasecmp(
             fromcode,
@@ -388,8 +239,8 @@ unsafe extern "C" fn get_valid_charset(mut fromcode: *const libc::c_char) -> *co
     }
     return fromcode;
 }
-#[no_mangle]
-pub unsafe extern "C" fn charconv_buffer(
+
+pub unsafe fn charconv_buffer(
     mut tocode: *const libc::c_char,
     mut fromcode: *const libc::c_char,
     mut str: *const libc::c_char,
@@ -485,7 +336,7 @@ pub unsafe extern "C" fn charconv_buffer(
     }
     return res;
 }
-#[no_mangle]
-pub unsafe extern "C" fn charconv_buffer_free(mut str: *mut libc::c_char) {
+
+pub unsafe fn charconv_buffer_free(mut str: *mut libc::c_char) {
     mmap_string_unref(str);
 }

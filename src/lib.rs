@@ -1,5 +1,4 @@
 #![allow(unused_attributes)]
-#![feature(extern_types)]
 #![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(mutable_transmutes)]
@@ -9,25 +8,27 @@
 #![allow(unused_assignments)]
 #![allow(unused_mut)]
 #![allow(unused_must_use)]
+#![feature(extern_types)]
 #![feature(const_raw_ptr_to_usize_cast)]
 #![feature(ptr_wrapping_offset_from)]
 
-extern crate c2rust_bitfields;
-extern crate libc;
+mod x;
 
-pub mod charconv;
-pub mod chash;
-pub mod clist;
-pub mod mailimf;
-pub mod mailimf_types;
-pub mod mailmime;
-pub mod mailmime_content;
-pub mod mailmime_decode;
-pub mod mailmime_disposition;
-pub mod mailmime_types;
-pub mod mailmime_types_helper;
-pub mod mmapstring;
+mod carray;
+mod charconv;
+mod chash;
+mod clist;
+mod mailimf;
+mod mailimf_types;
+mod mailmime;
+mod mailmime_content;
+mod mailmime_decode;
+mod mailmime_disposition;
+mod mailmime_types;
+mod mailmime_types_helper;
+mod mmapstring;
 
+pub use self::carray::*;
 pub use self::charconv::*;
 pub use self::chash::*;
 pub use self::clist::*;
@@ -43,18 +44,8 @@ pub use self::mmapstring::*;
 
 #[cfg(test)]
 mod tests {
-    use crate::mailimf_types::{
-        mailimf_address, mailimf_address_list, mailimf_cc, mailimf_date_time, mailimf_field,
-        mailimf_from, mailimf_group, mailimf_mailbox, mailimf_mailbox_list, mailimf_orig_date,
-        mailimf_subject, mailimf_to,
-    };
-    use crate::mailmime_types::{
-        self, mailimf_fields, mailmime, mailmime_composite_type, mailmime_content, mailmime_data,
-        mailmime_discrete_type, mailmime_disposition, mailmime_disposition_parm, mailmime_field,
-        mailmime_fields, mailmime_type,
-    };
-
-    use crate::clist::{clistcell_s, clistiter};
+    use super::*;
+    use crate::mailmime_types::{mailmime, mailmime_content, mailmime_disposition};
 
     extern "C" {
         #[no_mangle]
@@ -102,7 +93,7 @@ mod tests {
         }
     }
 
-    unsafe extern "C" fn display_mime(mut mime: *mut mailmime) {
+    unsafe fn display_mime(mut mime: *mut mailmime) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
         println!("{}", (*mime).mm_type);
 
@@ -141,7 +132,7 @@ mod tests {
                     cur = if !cur.is_null() {
                         (*cur).next
                     } else {
-                        0 as *mut clistcell_s
+                        0 as *mut clistcell
                     }
                 }
             }
@@ -164,7 +155,7 @@ mod tests {
         };
     }
 
-    unsafe extern "C" fn display_mime_content(mut content_type: *mut mailmime_content) {
+    unsafe fn display_mime_content(mut content_type: *mut mailmime_content) {
         printf(b"type: \x00" as *const u8 as *const libc::c_char);
         display_mime_type((*content_type).ct_type);
         printf(
@@ -172,7 +163,7 @@ mod tests {
             (*content_type).ct_subtype,
         );
     }
-    unsafe extern "C" fn display_mime_type(mut type_0: *mut mailmime_type) {
+    unsafe fn display_mime_type(mut type_0: *mut mailmime_type) {
         match (*type_0).tp_type {
             1 => {
                 display_mime_discrete_type((*type_0).tp_data.tp_discrete_type);
@@ -183,7 +174,7 @@ mod tests {
             _ => {}
         };
     }
-    unsafe extern "C" fn display_mime_composite_type(mut ct: *mut mailmime_composite_type) {
+    unsafe fn display_mime_composite_type(mut ct: *mut mailmime_composite_type) {
         match (*ct).ct_type {
             1 => {
                 printf(b"message\x00" as *const u8 as *const libc::c_char);
@@ -200,9 +191,7 @@ mod tests {
             _ => {}
         };
     }
-    unsafe extern "C" fn display_mime_discrete_type(
-        mut discrete_type: *mut mailmime_discrete_type,
-    ) {
+    unsafe fn display_mime_discrete_type(mut discrete_type: *mut mailmime_discrete_type) {
         match (*discrete_type).dt_type {
             1 => {
                 printf(b"text\x00" as *const u8 as *const libc::c_char);
@@ -228,7 +217,7 @@ mod tests {
             _ => {}
         };
     }
-    unsafe extern "C" fn display_mime_data(mut data: *mut mailmime_data) {
+    unsafe fn display_mime_data(mut data: *mut mailmime_data) {
         match (*data).dt_type {
             0 => {
                 printf(
@@ -245,7 +234,7 @@ mod tests {
             _ => {}
         };
     }
-    unsafe extern "C" fn display_mime_dsp_parm(mut param: *mut mailmime_disposition_parm) {
+    unsafe fn display_mime_dsp_parm(mut param: *mut mailmime_disposition_parm) {
         match (*param).pa_type {
             0 => {
                 printf(
@@ -256,7 +245,7 @@ mod tests {
             _ => {}
         };
     }
-    unsafe extern "C" fn display_mime_disposition(mut disposition: *mut mailmime_disposition) {
+    unsafe fn display_mime_disposition(mut disposition: *mut mailmime_disposition) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
         cur = (*(*disposition).dsp_parms).first;
         while !cur.is_null() {
@@ -270,11 +259,11 @@ mod tests {
             cur = if !cur.is_null() {
                 (*cur).next
             } else {
-                0 as *mut clistcell_s
+                0 as *mut clistcell
             }
         }
     }
-    unsafe extern "C" fn display_mime_field(mut field: *mut mailmime_field) {
+    unsafe fn display_mime_field(mut field: *mut mailmime_field) {
         match (*field).fld_type {
             1 => {
                 printf(b"content-type: \x00" as *const u8 as *const libc::c_char);
@@ -287,7 +276,7 @@ mod tests {
             _ => {}
         };
     }
-    unsafe extern "C" fn display_mime_fields(mut fields: *mut mailmime_fields) {
+    unsafe fn display_mime_fields(mut fields: *mut mailmime_fields) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
         cur = (*(*fields).fld_list).first;
         while !cur.is_null() {
@@ -301,11 +290,11 @@ mod tests {
             cur = if !cur.is_null() {
                 (*cur).next
             } else {
-                0 as *mut clistcell_s
+                0 as *mut clistcell
             }
         }
     }
-    unsafe extern "C" fn display_date_time(mut d: *mut mailimf_date_time) {
+    unsafe fn display_date_time(mut d: *mut mailimf_date_time) {
         printf(
             b"%02i/%02i/%i %02i:%02i:%02i %+04i\x00" as *const u8 as *const libc::c_char,
             (*d).dt_day,
@@ -317,10 +306,10 @@ mod tests {
             (*d).dt_zone,
         );
     }
-    unsafe extern "C" fn display_orig_date(mut orig_date: *mut mailimf_orig_date) {
+    unsafe fn display_orig_date(mut orig_date: *mut mailimf_orig_date) {
         display_date_time((*orig_date).dt_date_time);
     }
-    unsafe extern "C" fn display_mailbox(mut mb: *mut mailimf_mailbox) {
+    unsafe fn display_mailbox(mut mb: *mut mailimf_mailbox) {
         if !(*mb).mb_display_name.is_null() {
             printf(
                 b"%s \x00" as *const u8 as *const libc::c_char,
@@ -332,7 +321,7 @@ mod tests {
             (*mb).mb_addr_spec,
         );
     }
-    unsafe extern "C" fn display_mailbox_list(mut mb_list: *mut mailimf_mailbox_list) {
+    unsafe fn display_mailbox_list(mut mb_list: *mut mailimf_mailbox_list) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
         cur = (*(*mb_list).mb_list).first;
         while !cur.is_null() {
@@ -346,7 +335,7 @@ mod tests {
             if !if !cur.is_null() {
                 (*cur).next
             } else {
-                0 as *mut clistcell_s
+                0 as *mut clistcell
             }
             .is_null()
             {
@@ -355,11 +344,11 @@ mod tests {
             cur = if !cur.is_null() {
                 (*cur).next
             } else {
-                0 as *mut clistcell_s
+                0 as *mut clistcell
             }
         }
     }
-    unsafe extern "C" fn display_group(mut group: *mut mailimf_group) {
+    unsafe fn display_group(mut group: *mut mailimf_group) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
         printf(
             b"%s: \x00" as *const u8 as *const libc::c_char,
@@ -377,12 +366,12 @@ mod tests {
             cur = if !cur.is_null() {
                 (*cur).next
             } else {
-                0 as *mut clistcell_s
+                0 as *mut clistcell
             }
         }
         printf(b"; \x00" as *const u8 as *const libc::c_char);
     }
-    unsafe extern "C" fn display_address(mut a: *mut mailimf_address) {
+    unsafe fn display_address(mut a: *mut mailimf_address) {
         match (*a).ad_type {
             2 => {
                 display_group((*a).ad_data.ad_group);
@@ -393,7 +382,7 @@ mod tests {
             _ => {}
         };
     }
-    unsafe extern "C" fn display_address_list(mut addr_list: *mut mailimf_address_list) {
+    unsafe fn display_address_list(mut addr_list: *mut mailimf_address_list) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
         cur = (*(*addr_list).ad_list).first;
         while !cur.is_null() {
@@ -407,7 +396,7 @@ mod tests {
             if !if !cur.is_null() {
                 (*cur).next
             } else {
-                0 as *mut clistcell_s
+                0 as *mut clistcell
             }
             .is_null()
             {
@@ -416,26 +405,26 @@ mod tests {
             cur = if !cur.is_null() {
                 (*cur).next
             } else {
-                0 as *mut clistcell_s
+                0 as *mut clistcell
             }
         }
     }
-    unsafe extern "C" fn display_from(mut from: *mut mailimf_from) {
+    unsafe fn display_from(mut from: *mut mailimf_from) {
         display_mailbox_list((*from).frm_mb_list);
     }
-    unsafe extern "C" fn display_to(mut to: *mut mailimf_to) {
+    unsafe fn display_to(mut to: *mut mailimf_to) {
         display_address_list((*to).to_addr_list);
     }
-    unsafe extern "C" fn display_cc(mut cc: *mut mailimf_cc) {
+    unsafe fn display_cc(mut cc: *mut mailimf_cc) {
         display_address_list((*cc).cc_addr_list);
     }
-    unsafe extern "C" fn display_subject(mut subject: *mut mailimf_subject) {
+    unsafe fn display_subject(mut subject: *mut mailimf_subject) {
         printf(
             b"%s\x00" as *const u8 as *const libc::c_char,
             (*subject).sbj_value,
         );
     }
-    unsafe extern "C" fn display_field(mut field: *mut mailimf_field) {
+    unsafe fn display_field(mut field: *mut mailimf_field) {
         match (*field).fld_type {
             9 => {
                 printf(b"Date: \x00" as *const u8 as *const libc::c_char);
@@ -471,7 +460,7 @@ mod tests {
             _ => {}
         };
     }
-    unsafe extern "C" fn display_fields(mut fields: *mut mailimf_fields) {
+    unsafe fn display_fields(mut fields: *mut mailimf_fields) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
         cur = (*(*fields).fld_list).first;
         while !cur.is_null() {
@@ -485,7 +474,7 @@ mod tests {
             cur = if !cur.is_null() {
                 (*cur).next
             } else {
-                0 as *mut clistcell_s
+                0 as *mut clistcell
             }
         }
     }

@@ -1,58 +1,18 @@
 use libc;
 
 use crate::clist::*;
+use crate::mailimf_types::*;
+use crate::mmapstring::*;
+use crate::x::*;
 
-extern "C" {
-    /* Destroys a list. Data pointed by data pointers is NOT freed. */
-    #[no_mangle]
-    fn clist_free(_: *mut clist);
-    #[no_mangle]
-    fn clist_foreach(lst: *mut clist, func: clist_func, data: *mut libc::c_void);
-    #[no_mangle]
-    fn mailimf_body_free(body: *mut mailimf_body);
-    #[no_mangle]
-    fn mailimf_fields_free(fields: *mut mailimf_fields);
-    /* internal use */
-    #[no_mangle]
-    fn mailimf_atom_free(atom: *mut libc::c_char);
-    #[no_mangle]
-    fn mailimf_quoted_string_free(quoted_string: *mut libc::c_char);
-    #[no_mangle]
-    fn mailimf_msg_id_free(msg_id: *mut libc::c_char);
-    #[no_mangle]
-    fn mmap_string_unref(str: *mut libc::c_char) -> libc::c_int;
-    #[no_mangle]
-    fn free(_: *mut libc::c_void);
-    #[no_mangle]
-    fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
-}
-pub type __darwin_size_t = libc::c_ulong;
-pub type size_t = __darwin_size_t;
-pub type uint32_t = libc::c_uint;
-/*
-  mailimf_body is the text part of a message
+pub const MAILMIME_MECHANISM_TOKEN: libc::c_uint = 6;
+pub const MAILMIME_MECHANISM_BASE64: libc::c_uint = 5;
+pub const MAILMIME_MECHANISM_QUOTED_PRINTABLE: libc::c_uint = 4;
+pub const MAILMIME_MECHANISM_BINARY: libc::c_uint = 3;
+pub const MAILMIME_MECHANISM_8BIT: libc::c_uint = 2;
+pub const MAILMIME_MECHANISM_7BIT: libc::c_uint = 1;
+pub const MAILMIME_MECHANISM_ERROR: libc::c_uint = 0;
 
-  - text is the beginning of the text part, it is a substring
-    of an other string
-
-  - size is the size of the text part
-*/
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailimf_body {
-    pub bd_text: *const libc::c_char,
-    pub bd_size: size_t,
-}
-/*
-  mailimf_fields is a list of header fields
-
-  - fld_list is a list of header fields
-*/
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailimf_fields {
-    pub fld_list: *mut clist,
-}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct mailmime_composite_type {
@@ -146,10 +106,7 @@ pub struct mailmime_parameter {
     pub pa_name: *mut libc::c_char,
     pub pa_value: *mut libc::c_char,
 }
-pub type unnamed_2 = libc::c_uint;
-pub const MAILMIME_TYPE_COMPOSITE_TYPE: unnamed_2 = 2;
-pub const MAILMIME_TYPE_DISCRETE_TYPE: unnamed_2 = 1;
-pub const MAILMIME_TYPE_ERROR: unnamed_2 = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct mailmime_disposition_parm {
@@ -204,6 +161,7 @@ pub const MAILMIME_MESSAGE: unnamed_7 = 3;
 pub const MAILMIME_MULTIPLE: unnamed_7 = 2;
 pub const MAILMIME_SINGLE: unnamed_7 = 1;
 pub const MAILMIME_NONE: unnamed_7 = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct mailmime {
@@ -253,16 +211,15 @@ pub const MAILMIME_DISPOSITION_PARM_SIZE: unnamed_11 = 4;
 pub struct mailmime_section {
     pub sec_list: *mut clist,
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_attribute_free(mut attribute: *mut libc::c_char) {
+
+pub unsafe fn mailmime_attribute_free(mut attribute: *mut libc::c_char) {
     mailmime_token_free(attribute);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_token_free(mut token: *mut libc::c_char) {
+
+pub unsafe fn mailmime_token_free(mut token: *mut libc::c_char) {
     free(token as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_composite_type_new(
+pub unsafe fn mailmime_composite_type_new(
     mut ct_type: libc::c_int,
     mut ct_token: *mut libc::c_char,
 ) -> *mut mailmime_composite_type {
@@ -276,19 +233,19 @@ pub unsafe extern "C" fn mailmime_composite_type_new(
     (*ct).ct_token = ct_token;
     return ct;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_composite_type_free(mut ct: *mut mailmime_composite_type) {
+
+pub unsafe fn mailmime_composite_type_free(mut ct: *mut mailmime_composite_type) {
     if !(*ct).ct_token.is_null() {
         mailmime_extension_token_free((*ct).ct_token);
     }
     free(ct as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_extension_token_free(mut extension: *mut libc::c_char) {
+
+pub unsafe fn mailmime_extension_token_free(mut extension: *mut libc::c_char) {
     mailmime_token_free(extension);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_content_new(
+
+pub unsafe fn mailmime_content_new(
     mut ct_type: *mut mailmime_type,
     mut ct_subtype: *mut libc::c_char,
     mut ct_parameters: *mut clist,
@@ -304,39 +261,38 @@ pub unsafe extern "C" fn mailmime_content_new(
     (*content).ct_parameters = ct_parameters;
     return content;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_content_free(mut content: *mut mailmime_content) {
+
+pub unsafe fn mailmime_content_free(mut content: *mut mailmime_content) {
     mailmime_type_free((*content).ct_type);
     mailmime_subtype_free((*content).ct_subtype);
     if !(*content).ct_parameters.is_null() {
         clist_foreach(
             (*content).ct_parameters,
-            ::std::mem::transmute::<
-                Option<unsafe extern "C" fn(_: *mut mailmime_parameter) -> ()>,
-                clist_func,
-            >(Some(mailmime_parameter_free)),
+            ::std::mem::transmute::<Option<unsafe fn(_: *mut mailmime_parameter) -> ()>, clist_func>(
+                Some(mailmime_parameter_free),
+            ),
             0 as *mut libc::c_void,
         );
         clist_free((*content).ct_parameters);
     }
     free(content as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_parameter_free(mut parameter: *mut mailmime_parameter) {
+
+pub unsafe fn mailmime_parameter_free(mut parameter: *mut mailmime_parameter) {
     mailmime_attribute_free((*parameter).pa_name);
     mailmime_value_free((*parameter).pa_value);
     free(parameter as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_value_free(mut value: *mut libc::c_char) {
+
+pub unsafe fn mailmime_value_free(mut value: *mut libc::c_char) {
     free(value as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_subtype_free(mut subtype: *mut libc::c_char) {
+
+pub unsafe fn mailmime_subtype_free(mut subtype: *mut libc::c_char) {
     mailmime_extension_token_free(subtype);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_type_free(mut type_0: *mut mailmime_type) {
+
+pub unsafe fn mailmime_type_free(mut type_0: *mut mailmime_type) {
     match (*type_0).tp_type {
         1 => {
             mailmime_discrete_type_free((*type_0).tp_data.tp_discrete_type);
@@ -348,25 +304,23 @@ pub unsafe extern "C" fn mailmime_type_free(mut type_0: *mut mailmime_type) {
     }
     free(type_0 as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_discrete_type_free(
-    mut discrete_type: *mut mailmime_discrete_type,
-) {
+
+pub unsafe fn mailmime_discrete_type_free(mut discrete_type: *mut mailmime_discrete_type) {
     if !(*discrete_type).dt_extension.is_null() {
         mailmime_extension_token_free((*discrete_type).dt_extension);
     }
     free(discrete_type as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_description_free(mut description: *mut libc::c_char) {
+
+pub unsafe fn mailmime_description_free(mut description: *mut libc::c_char) {
     free(description as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_location_free(mut location: *mut libc::c_char) {
+
+pub unsafe fn mailmime_location_free(mut location: *mut libc::c_char) {
     free(location as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_discrete_type_new(
+
+pub unsafe fn mailmime_discrete_type_new(
     mut dt_type: libc::c_int,
     mut dt_extension: *mut libc::c_char,
 ) -> *mut mailmime_discrete_type {
@@ -380,23 +334,23 @@ pub unsafe extern "C" fn mailmime_discrete_type_new(
     (*discrete_type).dt_extension = dt_extension;
     return discrete_type;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_encoding_free(mut encoding: *mut mailmime_mechanism) {
+
+pub unsafe fn mailmime_encoding_free(mut encoding: *mut mailmime_mechanism) {
     mailmime_mechanism_free(encoding);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_mechanism_free(mut mechanism: *mut mailmime_mechanism) {
+
+pub unsafe fn mailmime_mechanism_free(mut mechanism: *mut mailmime_mechanism) {
     if !(*mechanism).enc_token.is_null() {
         mailmime_token_free((*mechanism).enc_token);
     }
     free(mechanism as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_id_free(mut id: *mut libc::c_char) {
+
+pub unsafe fn mailmime_id_free(mut id: *mut libc::c_char) {
     mailimf_msg_id_free(id);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_mechanism_new(
+
+pub unsafe fn mailmime_mechanism_new(
     mut enc_type: libc::c_int,
     mut enc_token: *mut libc::c_char,
 ) -> *mut mailmime_mechanism {
@@ -410,8 +364,8 @@ pub unsafe extern "C" fn mailmime_mechanism_new(
     (*mechanism).enc_token = enc_token;
     return mechanism;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_parameter_new(
+
+pub unsafe fn mailmime_parameter_new(
     mut pa_name: *mut libc::c_char,
     mut pa_value: *mut libc::c_char,
 ) -> *mut mailmime_parameter {
@@ -425,8 +379,8 @@ pub unsafe extern "C" fn mailmime_parameter_new(
     (*parameter).pa_value = pa_value;
     return parameter;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_type_new(
+
+pub unsafe fn mailmime_type_new(
     mut tp_type: libc::c_int,
     mut tp_discrete_type: *mut mailmime_discrete_type,
     mut tp_composite_type: *mut mailmime_composite_type,
@@ -445,8 +399,8 @@ pub unsafe extern "C" fn mailmime_type_new(
     }
     return mime_type;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_language_new(mut lg_list: *mut clist) -> *mut mailmime_language {
+
+pub unsafe fn mailmime_language_new(mut lg_list: *mut clist) -> *mut mailmime_language {
     let mut lang: *mut mailmime_language = 0 as *mut mailmime_language;
     lang = malloc(::std::mem::size_of::<mailmime_language>() as libc::c_ulong)
         as *mut mailmime_language;
@@ -456,13 +410,13 @@ pub unsafe extern "C" fn mailmime_language_new(mut lg_list: *mut clist) -> *mut 
     (*lang).lg_list = lg_list;
     return lang;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_language_free(mut lang: *mut mailmime_language) {
+
+pub unsafe fn mailmime_language_free(mut lang: *mut mailmime_language) {
     clist_foreach(
         (*lang).lg_list,
-        ::std::mem::transmute::<Option<unsafe extern "C" fn(_: *mut libc::c_char) -> ()>, clist_func>(
-            Some(mailimf_atom_free),
-        ),
+        ::std::mem::transmute::<Option<unsafe fn(_: *mut libc::c_char) -> ()>, clist_func>(Some(
+            mailimf_atom_free,
+        )),
         0 as *mut libc::c_void,
     );
     clist_free((*lang).lg_list);
@@ -471,8 +425,7 @@ pub unsafe extern "C" fn mailmime_language_free(mut lang: *mut mailmime_language
 /*
 void mailmime_x_token_free(gchar * x_token);
 */
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_field_new(
+pub unsafe fn mailmime_field_new(
     mut fld_type: libc::c_int,
     mut fld_content: *mut mailmime_content,
     mut fld_encoding: *mut mailmime_mechanism,
@@ -502,8 +455,8 @@ pub unsafe extern "C" fn mailmime_field_new(
     }
     return field;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_field_free(mut field: *mut mailmime_field) {
+
+pub unsafe fn mailmime_field_free(mut field: *mut mailmime_field) {
     match (*field).fld_type {
         1 => {
             if !(*field).fld_data.fld_content.is_null() {
@@ -544,13 +497,13 @@ pub unsafe extern "C" fn mailmime_field_free(mut field: *mut mailmime_field) {
     }
     free(field as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_free(mut dsp: *mut mailmime_disposition) {
+
+pub unsafe fn mailmime_disposition_free(mut dsp: *mut mailmime_disposition) {
     mailmime_disposition_type_free((*dsp).dsp_type);
     clist_foreach(
         (*dsp).dsp_parms,
         ::std::mem::transmute::<
-            Option<unsafe extern "C" fn(_: *mut mailmime_disposition_parm) -> ()>,
+            Option<unsafe fn(_: *mut mailmime_disposition_parm) -> ()>,
             clist_func,
         >(Some(mailmime_disposition_parm_free)),
         0 as *mut libc::c_void,
@@ -558,10 +511,8 @@ pub unsafe extern "C" fn mailmime_disposition_free(mut dsp: *mut mailmime_dispos
     clist_free((*dsp).dsp_parms);
     free(dsp as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_parm_free(
-    mut dsp_parm: *mut mailmime_disposition_parm,
-) {
+
+pub unsafe fn mailmime_disposition_parm_free(mut dsp_parm: *mut mailmime_disposition_parm) {
     match (*dsp_parm).pa_type {
         0 => {
             mailmime_filename_parm_free((*dsp_parm).pa_data.pa_filename);
@@ -582,37 +533,35 @@ pub unsafe extern "C" fn mailmime_disposition_parm_free(
     }
     free(dsp_parm as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_read_date_parm_free(mut date: *mut libc::c_char) {
+
+pub unsafe fn mailmime_read_date_parm_free(mut date: *mut libc::c_char) {
     mailmime_quoted_date_time_free(date);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_quoted_date_time_free(mut date: *mut libc::c_char) {
+
+pub unsafe fn mailmime_quoted_date_time_free(mut date: *mut libc::c_char) {
     mailimf_quoted_string_free(date);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_modification_date_parm_free(mut date: *mut libc::c_char) {
+
+pub unsafe fn mailmime_modification_date_parm_free(mut date: *mut libc::c_char) {
     mailmime_quoted_date_time_free(date);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_creation_date_parm_free(mut date: *mut libc::c_char) {
+
+pub unsafe fn mailmime_creation_date_parm_free(mut date: *mut libc::c_char) {
     mailmime_quoted_date_time_free(date);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_filename_parm_free(mut filename: *mut libc::c_char) {
+
+pub unsafe fn mailmime_filename_parm_free(mut filename: *mut libc::c_char) {
     mailmime_value_free(filename);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_type_free(
-    mut dsp_type: *mut mailmime_disposition_type,
-) {
+
+pub unsafe fn mailmime_disposition_type_free(mut dsp_type: *mut mailmime_disposition_type) {
     if !(*dsp_type).dsp_extension.is_null() {
         free((*dsp_type).dsp_extension as *mut libc::c_void);
     }
     free(dsp_type as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_fields_new(mut fld_list: *mut clist) -> *mut mailmime_fields {
+
+pub unsafe fn mailmime_fields_new(mut fld_list: *mut clist) -> *mut mailmime_fields {
     let mut fields: *mut mailmime_fields = 0 as *mut mailmime_fields;
     fields =
         malloc(::std::mem::size_of::<mailmime_fields>() as libc::c_ulong) as *mut mailmime_fields;
@@ -622,23 +571,20 @@ pub unsafe extern "C" fn mailmime_fields_new(mut fld_list: *mut clist) -> *mut m
     (*fields).fld_list = fld_list;
     return fields;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_fields_free(mut fields: *mut mailmime_fields) {
+
+pub unsafe fn mailmime_fields_free(mut fields: *mut mailmime_fields) {
     clist_foreach(
         (*fields).fld_list,
-        ::std::mem::transmute::<
-            Option<unsafe extern "C" fn(_: *mut mailmime_field) -> ()>,
-            clist_func,
-        >(Some(mailmime_field_free)),
+        ::std::mem::transmute::<Option<unsafe fn(_: *mut mailmime_field) -> ()>, clist_func>(Some(
+            mailmime_field_free,
+        )),
         0 as *mut libc::c_void,
     );
     clist_free((*fields).fld_list);
     free(fields as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_multipart_body_new(
-    mut bd_list: *mut clist,
-) -> *mut mailmime_multipart_body {
+
+pub unsafe fn mailmime_multipart_body_new(mut bd_list: *mut clist) -> *mut mailmime_multipart_body {
     let mut mp_body: *mut mailmime_multipart_body = 0 as *mut mailmime_multipart_body;
     mp_body = malloc(::std::mem::size_of::<mailmime_multipart_body>() as libc::c_ulong)
         as *mut mailmime_multipart_body;
@@ -648,20 +594,20 @@ pub unsafe extern "C" fn mailmime_multipart_body_new(
     (*mp_body).bd_list = bd_list;
     return mp_body;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_multipart_body_free(mut mp_body: *mut mailmime_multipart_body) {
+
+pub unsafe fn mailmime_multipart_body_free(mut mp_body: *mut mailmime_multipart_body) {
     clist_foreach(
         (*mp_body).bd_list,
-        ::std::mem::transmute::<Option<unsafe extern "C" fn(_: *mut mailimf_body) -> ()>, clist_func>(
-            Some(mailimf_body_free),
-        ),
+        ::std::mem::transmute::<Option<unsafe fn(_: *mut mailimf_body) -> ()>, clist_func>(Some(
+            mailimf_body_free,
+        )),
         0 as *mut libc::c_void,
     );
     clist_free((*mp_body).bd_list);
     free(mp_body as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_data_new(
+
+pub unsafe fn mailmime_data_new(
     mut dt_type: libc::c_int,
     mut dt_encoding: libc::c_int,
     mut dt_encoded: libc::c_int,
@@ -688,8 +634,8 @@ pub unsafe extern "C" fn mailmime_data_new(
     }
     return mime_data;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_data_free(mut mime_data: *mut mailmime_data) {
+
+pub unsafe fn mailmime_data_free(mut mime_data: *mut mailmime_data) {
     match (*mime_data).dt_type {
         1 => {
             free((*mime_data).dt_data.dt_filename as *mut libc::c_void);
@@ -698,8 +644,8 @@ pub unsafe extern "C" fn mailmime_data_free(mut mime_data: *mut mailmime_data) {
     }
     free(mime_data as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_new(
+
+pub unsafe fn mailmime_new(
     mut mm_type: libc::c_int,
     mut mm_mime_start: *const libc::c_char,
     mut mm_length: size_t,
@@ -747,7 +693,7 @@ pub unsafe extern "C" fn mailmime_new(
                 cur = if !cur.is_null() {
                     (*cur).next
                 } else {
-                    0 as *mut clistcell_s
+                    0 as *mut clistcell
                 }
             }
         }
@@ -763,8 +709,8 @@ pub unsafe extern "C" fn mailmime_new(
     }
     return mime;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_free(mut mime: *mut mailmime) {
+
+pub unsafe fn mailmime_free(mut mime: *mut mailmime) {
     match (*mime).mm_type {
         1 => {
             if (*mime).mm_body.is_null() && !(*mime).mm_data.mm_single.is_null() {
@@ -781,10 +727,9 @@ pub unsafe extern "C" fn mailmime_free(mut mime: *mut mailmime) {
             }
             clist_foreach(
                 (*mime).mm_data.mm_multipart.mm_mp_list,
-                ::std::mem::transmute::<
-                    Option<unsafe extern "C" fn(_: *mut mailmime) -> ()>,
-                    clist_func,
-                >(Some(mailmime_free)),
+                ::std::mem::transmute::<Option<unsafe fn(_: *mut mailmime) -> ()>, clist_func>(
+                    Some(mailmime_free),
+                ),
                 0 as *mut libc::c_void,
             );
             clist_free((*mime).mm_data.mm_multipart.mm_mp_list);
@@ -810,8 +755,8 @@ pub unsafe extern "C" fn mailmime_free(mut mime: *mut mailmime) {
     }
     free(mime as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_encoded_word_new(
+
+pub unsafe fn mailmime_encoded_word_new(
     mut wd_charset: *mut libc::c_char,
     mut wd_text: *mut libc::c_char,
 ) -> *mut mailmime_encoded_word {
@@ -825,22 +770,22 @@ pub unsafe extern "C" fn mailmime_encoded_word_new(
     (*ew).wd_text = wd_text;
     return ew;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_encoded_word_free(mut ew: *mut mailmime_encoded_word) {
+
+pub unsafe fn mailmime_encoded_word_free(mut ew: *mut mailmime_encoded_word) {
     mailmime_charset_free((*ew).wd_charset);
     mailmime_encoded_text_free((*ew).wd_text);
     free(ew as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_encoded_text_free(mut text: *mut libc::c_char) {
+
+pub unsafe fn mailmime_encoded_text_free(mut text: *mut libc::c_char) {
     free(text as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_charset_free(mut charset: *mut libc::c_char) {
+
+pub unsafe fn mailmime_charset_free(mut charset: *mut libc::c_char) {
     free(charset as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_new(
+
+pub unsafe fn mailmime_disposition_new(
     mut dsp_type: *mut mailmime_disposition_type,
     mut dsp_parms: *mut clist,
 ) -> *mut mailmime_disposition {
@@ -854,8 +799,8 @@ pub unsafe extern "C" fn mailmime_disposition_new(
     (*dsp).dsp_parms = dsp_parms;
     return dsp;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_type_new(
+
+pub unsafe fn mailmime_disposition_type_new(
     mut dsp_type: libc::c_int,
     mut dsp_extension: *mut libc::c_char,
 ) -> *mut mailmime_disposition_type {
@@ -869,8 +814,8 @@ pub unsafe extern "C" fn mailmime_disposition_type_new(
     (*m_dsp_type).dsp_extension = dsp_extension;
     return m_dsp_type;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_parm_new(
+
+pub unsafe fn mailmime_disposition_parm_new(
     mut pa_type: libc::c_int,
     mut pa_filename: *mut libc::c_char,
     mut pa_creation_date: *mut libc::c_char,
@@ -897,8 +842,8 @@ pub unsafe extern "C" fn mailmime_disposition_parm_new(
     }
     return dsp_parm;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_section_new(mut sec_list: *mut clist) -> *mut mailmime_section {
+
+pub unsafe fn mailmime_section_new(mut sec_list: *mut clist) -> *mut mailmime_section {
     let mut section: *mut mailmime_section = 0 as *mut mailmime_section;
     section =
         malloc(::std::mem::size_of::<mailmime_section>() as libc::c_ulong) as *mut mailmime_section;
@@ -908,8 +853,8 @@ pub unsafe extern "C" fn mailmime_section_new(mut sec_list: *mut clist) -> *mut 
     (*section).sec_list = sec_list;
     return section;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_section_free(mut section: *mut mailmime_section) {
+
+pub unsafe fn mailmime_section_free(mut section: *mut mailmime_section) {
     clist_foreach(
         (*section).sec_list,
         ::std::mem::transmute::<Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>, clist_func>(
@@ -920,7 +865,7 @@ pub unsafe extern "C" fn mailmime_section_free(mut section: *mut mailmime_sectio
     clist_free((*section).sec_list);
     free(section as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_decoded_part_free(mut part: *mut libc::c_char) {
+
+pub unsafe fn mailmime_decoded_part_free(mut part: *mut libc::c_char) {
     mmap_string_unref(part);
 }

@@ -1,60 +1,14 @@
 use libc;
-extern "C" {
-    #[no_mangle]
-    fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn calloc(_: libc::c_ulong, _: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn free(_: *mut libc::c_void);
-    #[no_mangle]
-    fn memcmp(_: *const libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> libc::c_int;
-    #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-}
-/*
- * libEtPan! -- a mail stuff library
- *
- * chash - Implements generic hash tables.
- *
- * Copyright (c) 1999-2005, Ga�l Roualland <gael.roualland@iname.com>
- * interface changes - 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: chash.h,v 1.16 2010/11/16 20:46:35 hoa Exp $
- */
+
+use crate::x::*;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct chashdatum {
     pub data: *mut libc::c_void,
     pub len: libc::c_uint,
 }
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct chash {
@@ -64,6 +18,7 @@ pub struct chash {
     pub copykey: libc::c_int,
     pub cells: *mut *mut chashcell,
 }
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct chashcell {
@@ -72,6 +27,7 @@ pub struct chashcell {
     pub value: chashdatum,
     pub next: *mut chashcell,
 }
+
 pub type chashiter = chashcell;
 /* Allocates a new (empty) hash using this initial size and the given flags,
   specifying which data should be copied in the hash.
@@ -80,8 +36,7 @@ pub type chashiter = chashcell;
    CHASH_COPYVALUE : Values are dupped and freed as needed in the hash.
    CHASH_COPYALL   : Both keys and values are dupped in the hash.
 */
-#[no_mangle]
-pub unsafe extern "C" fn chash_new(mut size: libc::c_uint, mut flags: libc::c_int) -> *mut chash {
+pub unsafe fn chash_new(mut size: libc::c_uint, mut flags: libc::c_int) -> *mut chash {
     let mut h: *mut chash = 0 as *mut chash;
     h = malloc(::std::mem::size_of::<chash>() as libc::c_ulong) as *mut chash;
     if h.is_null() {
@@ -104,9 +59,9 @@ pub unsafe extern "C" fn chash_new(mut size: libc::c_uint, mut flags: libc::c_in
     (*h).copyvalue = flags & 2i32;
     return h;
 }
+
 /* Frees a hash */
-#[no_mangle]
-pub unsafe extern "C" fn chash_free(mut hash: *mut chash) {
+pub unsafe fn chash_free(mut hash: *mut chash) {
     let mut indx: libc::c_uint = 0;
     let mut iter: *mut chashiter = 0 as *mut chashiter;
     let mut next: *mut chashiter = 0 as *mut chashiter;
@@ -129,9 +84,9 @@ pub unsafe extern "C" fn chash_free(mut hash: *mut chash) {
     free((*hash).cells as *mut libc::c_void);
     free(hash as *mut libc::c_void);
 }
+
 /* Removes all elements from a hash */
-#[no_mangle]
-pub unsafe extern "C" fn chash_clear(mut hash: *mut chash) {
+pub unsafe fn chash_clear(mut hash: *mut chash) {
     let mut indx: libc::c_uint = 0;
     let mut iter: *mut chashiter = 0 as *mut chashiter;
     let mut next: *mut chashiter = 0 as *mut chashiter;
@@ -164,8 +119,7 @@ Length can be 0 if key/value are strings.
 If an entry already exists for this key, it is replaced, and its value
 is returned. Otherwise, the data pointer will be NULL and the length
 field be set to TRUE or FALSe to indicate success or failure. */
-#[no_mangle]
-pub unsafe extern "C" fn chash_set(
+pub unsafe fn chash_set(
     mut hash: *mut chash,
     mut key: *mut chashdatum,
     mut value: *mut chashdatum,
@@ -304,10 +258,7 @@ pub unsafe extern "C" fn chash_set(
     return -1i32;
 }
 #[inline]
-unsafe extern "C" fn chash_dup(
-    mut data: *const libc::c_void,
-    mut len: libc::c_uint,
-) -> *mut libc::c_char {
+unsafe fn chash_dup(mut data: *const libc::c_void, mut len: libc::c_uint) -> *mut libc::c_char {
     let mut r: *mut libc::c_void = 0 as *mut libc::c_void;
     r = malloc(len as libc::c_ulong) as *mut libc::c_char as *mut libc::c_void;
     if r.is_null() {
@@ -316,50 +267,9 @@ unsafe extern "C" fn chash_dup(
     memcpy(r, data, len as libc::c_ulong);
     return r as *mut libc::c_char;
 }
-/*
- * libEtPan! -- a mail stuff library
- *
- * chash - Implements generic hash tables.
- *
- * Copyright (c) 1999-2005, Ga�l Roualland <gael.roualland@iname.com>
- * interface changes - 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: chash.c,v 1.16 2006/05/22 13:39:40 hoa Exp $
- */
-/* This defines the maximum (average) number of entries per bucket.
-The hash is resized everytime inserting an entry makes the
-average go over that value. */
+
 #[inline]
-unsafe extern "C" fn chash_func(
-    mut key: *const libc::c_char,
-    mut len: libc::c_uint,
-) -> libc::c_uint {
+unsafe fn chash_func(mut key: *const libc::c_char, mut len: libc::c_uint) -> libc::c_uint {
     let mut c: libc::c_uint = 5381i32 as libc::c_uint;
     let mut k: *const libc::c_char = key;
     loop {
@@ -376,9 +286,9 @@ unsafe extern "C" fn chash_func(
     }
     return c;
 }
+
 /* Resizes the hash table to the passed size. */
-#[no_mangle]
-pub unsafe extern "C" fn chash_resize(mut hash: *mut chash, mut size: libc::c_uint) -> libc::c_int {
+pub unsafe fn chash_resize(mut hash: *mut chash, mut size: libc::c_uint) -> libc::c_int {
     let mut cells: *mut *mut chashcell = 0 as *mut *mut chashcell;
     let mut indx: libc::c_uint = 0;
     let mut nindx: libc::c_uint = 0;
@@ -412,10 +322,10 @@ pub unsafe extern "C" fn chash_resize(mut hash: *mut chash, mut size: libc::c_ui
     (*hash).cells = cells;
     return 0i32;
 }
+
 /* Retrieves the data associated to the key if it is found in the hash table.
 The data pointer and the length will be NULL if not found*/
-#[no_mangle]
-pub unsafe extern "C" fn chash_get(
+pub unsafe fn chash_get(
     mut hash: *mut chash,
     mut key: *mut chashdatum,
     mut result: *mut chashdatum,
@@ -441,8 +351,7 @@ pub unsafe extern "C" fn chash_get(
 /* Removes the entry associated to this key if it is found in the hash table,
 and returns its contents if not dupped (otherwise, pointer will be NULL
 and len TRUE). If entry is not found both pointer and len will be NULL. */
-#[no_mangle]
-pub unsafe extern "C" fn chash_delete(
+pub unsafe fn chash_delete(
     mut hash: *mut chash,
     mut key: *mut chashdatum,
     mut oldvalue: *mut chashdatum,
@@ -486,8 +395,7 @@ pub unsafe extern "C" fn chash_delete(
     return -1i32;
 }
 /* Returns an iterator to the first non-empty entry of the hash table */
-#[no_mangle]
-pub unsafe extern "C" fn chash_begin(mut hash: *mut chash) -> *mut chashiter {
+pub unsafe fn chash_begin(mut hash: *mut chash) -> *mut chashiter {
     let mut iter: *mut chashiter = 0 as *mut chashiter;
     let mut indx: libc::c_uint = 0i32 as libc::c_uint;
     iter = *(*hash).cells.offset(0isize);
@@ -501,11 +409,7 @@ pub unsafe extern "C" fn chash_begin(mut hash: *mut chash) -> *mut chashiter {
     return iter;
 }
 /* Returns the next non-empty entry of the hash table */
-#[no_mangle]
-pub unsafe extern "C" fn chash_next(
-    mut hash: *mut chash,
-    mut iter: *mut chashiter,
-) -> *mut chashiter {
+pub unsafe fn chash_next(mut hash: *mut chash, mut iter: *mut chashiter) -> *mut chashiter {
     let mut indx: libc::c_uint = 0;
     if iter.is_null() {
         return 0 as *mut chashiter;

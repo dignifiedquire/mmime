@@ -1,244 +1,23 @@
 use libc;
+use libc::toupper;
 
-use crate::mailmime::toupper;
+use crate::charconv::*;
+use crate::mailimf::*;
+use crate::mailmime_content::*;
+use crate::mailmime_types::*;
+use crate::mmapstring::*;
+use crate::x::*;
 
-extern "C" {
-    /* Strings
-     */
-    #[no_mangle]
-    fn mmap_string_new(init: *const libc::c_char) -> *mut MMAPString;
-    #[no_mangle]
-    fn mmap_string_free(string: *mut MMAPString);
-    #[no_mangle]
-    fn mmap_string_append(string: *mut MMAPString, val: *const libc::c_char) -> *mut MMAPString;
-    #[no_mangle]
-    fn mmap_string_append_c(string: *mut MMAPString, c: libc::c_char) -> *mut MMAPString;
-    /* internal use, exported for MIME */
-    #[no_mangle]
-    fn mailimf_fws_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailimf_char_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        token: libc::c_char,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailimf_custom_string_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut *mut libc::c_char,
-        is_custom_char: Option<unsafe extern "C" fn(_: libc::c_char) -> libc::c_int>,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailimf_token_case_insensitive_len_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        token: *mut libc::c_char,
-        token_length: size_t,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailmime_encoded_word_new(
-        wd_charset: *mut libc::c_char,
-        wd_text: *mut libc::c_char,
-    ) -> *mut mailmime_encoded_word;
-    #[no_mangle]
-    fn mailmime_encoded_word_free(ew: *mut mailmime_encoded_word);
-    #[no_mangle]
-    fn mailmime_charset_free(charset: *mut libc::c_char);
-    #[no_mangle]
-    fn mailmime_encoded_text_free(text: *mut libc::c_char);
-    #[no_mangle]
-    fn mailmime_decoded_part_free(part: *mut libc::c_char);
-    #[no_mangle]
-    fn strdup(_: *const libc::c_char) -> *mut libc::c_char;
-    #[no_mangle]
-    fn free(_: *mut libc::c_void);
-    #[no_mangle]
-    fn strlen(_: *const libc::c_char) -> libc::c_ulong;
-    #[no_mangle]
-    fn charconv(
-        tocode: *const libc::c_char,
-        fromcode: *const libc::c_char,
-        str: *const libc::c_char,
-        length: size_t,
-        result: *mut *mut libc::c_char,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn strcasecmp(_: *const libc::c_char, _: *const libc::c_char) -> libc::c_int;
-    #[no_mangle]
-    fn mailmime_quoted_printable_body_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut *mut libc::c_char,
-        result_len: *mut size_t,
-        in_header: libc::c_int,
-    ) -> libc::c_int;
-    /* decode */
-    #[no_mangle]
-    fn mailmime_base64_body_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut *mut libc::c_char,
-        result_len: *mut size_t,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn realloc(_: *mut libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-}
-pub type __darwin_ct_rune_t = libc::c_int;
-pub type __darwin_size_t = libc::c_ulong;
-pub type size_t = __darwin_size_t;
-/* these are the possible returned error codes */
-pub type unnamed = libc::c_uint;
-pub const MAILIMF_ERROR_FILE: unnamed = 4;
-pub const MAILIMF_ERROR_INVAL: unnamed = 3;
-pub const MAILIMF_ERROR_MEMORY: unnamed = 2;
-pub const MAILIMF_ERROR_PARSE: unnamed = 1;
-pub const MAILIMF_NO_ERROR: unnamed = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _MMAPString {
-    pub str_0: *mut libc::c_char,
-    pub len: size_t,
-    pub allocated_len: size_t,
-    pub fd: libc::c_int,
-    pub mmapped_size: size_t,
-}
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: mmapstring.h,v 1.14 2008/02/28 14:06:27 colinleroy Exp $
- */
-/*
-#define TMPDIR "/tmp"
-*/
-pub type MMAPString = _MMAPString;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_encoded_word {
-    pub wd_charset: *mut libc::c_char,
-    pub wd_text: *mut libc::c_char,
-}
-pub const MAIL_CHARCONV_ERROR_CONV: unnamed_0 = 3;
-pub const MAIL_CHARCONV_ERROR_UNKNOWN_CHARSET: unnamed_0 = 1;
-pub const MAIL_CHARCONV_ERROR_MEMORY: unnamed_0 = 2;
-pub const TYPE_WORD: unnamed_2 = 1;
-pub const TYPE_ENCODED_WORD: unnamed_2 = 2;
-pub const MAILMIME_ENCODING_Q: unnamed_1 = 1;
-pub const MAILMIME_ENCODING_B: unnamed_1 = 0;
-pub const TYPE_ERROR: unnamed_2 = 0;
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: charconv.h,v 1.13 2006/06/16 09:25:23 smarinier Exp $
- */
-pub type unnamed_0 = libc::c_uint;
-pub const MAIL_CHARCONV_NO_ERROR: unnamed_0 = 0;
-pub type unnamed_1 = libc::c_uint;
-pub type unnamed_2 = libc::c_uint;
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: mailmime_decode.h,v 1.14 2008/02/20 22:15:52 hoa Exp $
- */
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_encoded_phrase_parse(
+pub const MAIL_CHARCONV_ERROR_CONV: libc::c_uint = 3;
+pub const MAIL_CHARCONV_ERROR_UNKNOWN_CHARSET: libc::c_uint = 1;
+pub const MAIL_CHARCONV_ERROR_MEMORY: libc::c_uint = 2;
+pub const TYPE_WORD: libc::c_uint = 1;
+pub const TYPE_ENCODED_WORD: libc::c_uint = 2;
+pub const MAILMIME_ENCODING_Q: libc::c_uint = 1;
+pub const MAILMIME_ENCODING_B: libc::c_uint = 0;
+pub const TYPE_ERROR: libc::c_uint = 0;
+
+pub unsafe fn mailmime_encoded_phrase_parse(
     mut default_fromcode: *const libc::c_char,
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -465,7 +244,7 @@ pub unsafe extern "C" fn mailmime_encoded_phrase_parse(
     }
     return res;
 }
-unsafe extern "C" fn mailmime_non_encoded_word_parse(
+unsafe fn mailmime_non_encoded_word_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -552,7 +331,7 @@ unsafe extern "C" fn mailmime_non_encoded_word_parse(
     return res;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailmime_encoded_word_parse(
+pub unsafe fn mailmime_encoded_word_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -991,7 +770,7 @@ pub unsafe extern "C" fn mailmime_encoded_word_parse(
     }
     return res;
 }
-unsafe extern "C" fn mailmime_encoding_parse(
+unsafe fn mailmime_encoding_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -1053,7 +832,7 @@ unsafe extern "C" fn mailmime_encoding_parse(
   RFC 2047 : MIME (Multipurpose Internet Mail Extensions) Part Three:
              Message Header Extensions for Non-ASCII Text
 */
-unsafe extern "C" fn mailmime_charset_parse(
+unsafe fn mailmime_charset_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -1061,7 +840,7 @@ unsafe extern "C" fn mailmime_charset_parse(
 ) -> libc::c_int {
     return mailmime_etoken_parse(message, length, indx, charset);
 }
-unsafe extern "C" fn mailmime_etoken_parse(
+unsafe fn mailmime_etoken_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -1070,7 +849,7 @@ unsafe extern "C" fn mailmime_etoken_parse(
     return mailimf_custom_string_parse(message, length, indx, result, Some(is_etoken_char));
 }
 #[no_mangle]
-pub unsafe extern "C" fn is_etoken_char(mut ch: libc::c_char) -> libc::c_int {
+pub unsafe fn is_etoken_char(mut ch: libc::c_char) -> libc::c_int {
     let mut uch: libc::c_uchar = ch as libc::c_uchar;
     if (uch as libc::c_int) < 31i32 {
         return 0i32;

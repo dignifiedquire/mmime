@@ -1,49 +1,8 @@
 use libc;
 
 use crate::clist::*;
+use crate::x::*;
 
-extern "C" {
-    #[no_mangle]
-    fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn free(_: *mut libc::c_void);
-}
-pub type __darwin_size_t = libc::c_ulong;
-pub type size_t = __darwin_size_t;
-
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: mailimf_types.h,v 1.34 2006/05/22 13:39:42 hoa Exp $
- */
 /*
   IMPORTANT NOTE:
 
@@ -499,7 +458,7 @@ pub type unnamed_2 = libc::c_uint;
 /* on parse error */
 pub const MAILIMF_FIELD_NONE: unnamed_2 = 0;
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_date_time_new(
+pub unsafe fn mailimf_date_time_new(
     mut dt_day: libc::c_int,
     mut dt_month: libc::c_int,
     mut dt_year: libc::c_int,
@@ -524,11 +483,11 @@ pub unsafe extern "C" fn mailimf_date_time_new(
     return date_time;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_date_time_free(mut date_time: *mut mailimf_date_time) {
+pub unsafe fn mailimf_date_time_free(mut date_time: *mut mailimf_date_time) {
     free(date_time as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_address_new(
+pub unsafe fn mailimf_address_new(
     mut ad_type: libc::c_int,
     mut ad_mailbox: *mut mailimf_mailbox,
     mut ad_group: *mut mailimf_group,
@@ -548,7 +507,7 @@ pub unsafe extern "C" fn mailimf_address_new(
     return address;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_address_free(mut address: *mut mailimf_address) {
+pub unsafe fn mailimf_address_free(mut address: *mut mailimf_address) {
     match (*address).ad_type {
         1 => {
             mailimf_mailbox_free((*address).ad_data.ad_mailbox);
@@ -561,7 +520,7 @@ pub unsafe extern "C" fn mailimf_address_free(mut address: *mut mailimf_address)
     free(address as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_group_free(mut group: *mut mailimf_group) {
+pub unsafe fn mailimf_group_free(mut group: *mut mailimf_group) {
     if !(*group).grp_mb_list.is_null() {
         mailimf_mailbox_list_free((*group).grp_mb_list);
     }
@@ -569,28 +528,27 @@ pub unsafe extern "C" fn mailimf_group_free(mut group: *mut mailimf_group) {
     free(group as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_display_name_free(mut display_name: *mut libc::c_char) {
+pub unsafe fn mailimf_display_name_free(mut display_name: *mut libc::c_char) {
     mailimf_phrase_free(display_name);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_phrase_free(mut phrase: *mut libc::c_char) {
+pub unsafe fn mailimf_phrase_free(mut phrase: *mut libc::c_char) {
     free(phrase as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_mailbox_list_free(mut mb_list: *mut mailimf_mailbox_list) {
+pub unsafe fn mailimf_mailbox_list_free(mut mb_list: *mut mailimf_mailbox_list) {
     clist_foreach(
         (*mb_list).mb_list,
-        ::std::mem::transmute::<
-            Option<unsafe extern "C" fn(_: *mut mailimf_mailbox) -> ()>,
-            clist_func,
-        >(Some(mailimf_mailbox_free)),
+        ::std::mem::transmute::<Option<unsafe fn(_: *mut mailimf_mailbox) -> ()>, clist_func>(
+            Some(mailimf_mailbox_free),
+        ),
         0 as *mut libc::c_void,
     );
     clist_free((*mb_list).mb_list);
     free(mb_list as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_mailbox_free(mut mailbox: *mut mailimf_mailbox) {
+pub unsafe fn mailimf_mailbox_free(mut mailbox: *mut mailimf_mailbox) {
     if !(*mailbox).mb_display_name.is_null() {
         mailimf_display_name_free((*mailbox).mb_display_name);
     }
@@ -598,11 +556,11 @@ pub unsafe extern "C" fn mailimf_mailbox_free(mut mailbox: *mut mailimf_mailbox)
     free(mailbox as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_addr_spec_free(mut addr_spec: *mut libc::c_char) {
+pub unsafe fn mailimf_addr_spec_free(mut addr_spec: *mut libc::c_char) {
     free(addr_spec as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_mailbox_new(
+pub unsafe fn mailimf_mailbox_new(
     mut mb_display_name: *mut libc::c_char,
     mut mb_addr_spec: *mut libc::c_char,
 ) -> *mut mailimf_mailbox {
@@ -616,7 +574,7 @@ pub unsafe extern "C" fn mailimf_mailbox_new(
     return mb;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_group_new(
+pub unsafe fn mailimf_group_new(
     mut grp_display_name: *mut libc::c_char,
     mut grp_mb_list: *mut mailimf_mailbox_list,
 ) -> *mut mailimf_group {
@@ -630,9 +588,7 @@ pub unsafe extern "C" fn mailimf_group_new(
     return group;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_mailbox_list_new(
-    mut mb_list: *mut clist,
-) -> *mut mailimf_mailbox_list {
+pub unsafe fn mailimf_mailbox_list_new(mut mb_list: *mut clist) -> *mut mailimf_mailbox_list {
     let mut mbl: *mut mailimf_mailbox_list = 0 as *mut mailimf_mailbox_list;
     mbl = malloc(::std::mem::size_of::<mailimf_mailbox_list>() as libc::c_ulong)
         as *mut mailimf_mailbox_list;
@@ -643,9 +599,7 @@ pub unsafe extern "C" fn mailimf_mailbox_list_new(
     return mbl;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_address_list_new(
-    mut ad_list: *mut clist,
-) -> *mut mailimf_address_list {
+pub unsafe fn mailimf_address_list_new(mut ad_list: *mut clist) -> *mut mailimf_address_list {
     let mut addr_list: *mut mailimf_address_list = 0 as *mut mailimf_address_list;
     addr_list = malloc(::std::mem::size_of::<mailimf_address_list>() as libc::c_ulong)
         as *mut mailimf_address_list;
@@ -656,20 +610,19 @@ pub unsafe extern "C" fn mailimf_address_list_new(
     return addr_list;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_address_list_free(mut addr_list: *mut mailimf_address_list) {
+pub unsafe fn mailimf_address_list_free(mut addr_list: *mut mailimf_address_list) {
     clist_foreach(
         (*addr_list).ad_list,
-        ::std::mem::transmute::<
-            Option<unsafe extern "C" fn(_: *mut mailimf_address) -> ()>,
-            clist_func,
-        >(Some(mailimf_address_free)),
+        ::std::mem::transmute::<Option<unsafe fn(_: *mut mailimf_address) -> ()>, clist_func>(
+            Some(mailimf_address_free),
+        ),
         0 as *mut libc::c_void,
     );
     clist_free((*addr_list).ad_list);
     free(addr_list as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_body_new(
+pub unsafe fn mailimf_body_new(
     mut bd_text: *const libc::c_char,
     mut bd_size: size_t,
 ) -> *mut mailimf_body {
@@ -683,11 +636,11 @@ pub unsafe extern "C" fn mailimf_body_new(
     return body;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_body_free(mut body: *mut mailimf_body) {
+pub unsafe fn mailimf_body_free(mut body: *mut mailimf_body) {
     free(body as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_message_new(
+pub unsafe fn mailimf_message_new(
     mut msg_fields: *mut mailimf_fields,
     mut msg_body: *mut mailimf_body,
 ) -> *mut mailimf_message {
@@ -702,20 +655,19 @@ pub unsafe extern "C" fn mailimf_message_new(
     return message;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_message_free(mut message: *mut mailimf_message) {
+pub unsafe fn mailimf_message_free(mut message: *mut mailimf_message) {
     mailimf_body_free((*message).msg_body);
     mailimf_fields_free((*message).msg_fields);
     free(message as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_fields_free(mut fields: *mut mailimf_fields) {
+pub unsafe fn mailimf_fields_free(mut fields: *mut mailimf_fields) {
     if !(*fields).fld_list.is_null() {
         clist_foreach(
             (*fields).fld_list,
-            ::std::mem::transmute::<
-                Option<unsafe extern "C" fn(_: *mut mailimf_field) -> ()>,
-                clist_func,
-            >(Some(mailimf_field_free)),
+            ::std::mem::transmute::<Option<unsafe fn(_: *mut mailimf_field) -> ()>, clist_func>(
+                Some(mailimf_field_free),
+            ),
             0 as *mut libc::c_void,
         );
         clist_free((*fields).fld_list);
@@ -723,7 +675,7 @@ pub unsafe extern "C" fn mailimf_fields_free(mut fields: *mut mailimf_fields) {
     free(fields as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_field_free(mut field: *mut mailimf_field) {
+pub unsafe fn mailimf_field_free(mut field: *mut mailimf_field) {
     match (*field).fld_type {
         1 => {
             mailimf_return_free((*field).fld_data.fld_return_path);
@@ -796,139 +748,139 @@ pub unsafe extern "C" fn mailimf_field_free(mut field: *mut mailimf_field) {
     free(field as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_optional_field_free(mut opt_field: *mut mailimf_optional_field) {
+pub unsafe fn mailimf_optional_field_free(mut opt_field: *mut mailimf_optional_field) {
     mailimf_field_name_free((*opt_field).fld_name);
     mailimf_unstructured_free((*opt_field).fld_value);
     free(opt_field as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_unstructured_free(mut unstructured: *mut libc::c_char) {
+pub unsafe fn mailimf_unstructured_free(mut unstructured: *mut libc::c_char) {
     free(unstructured as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_field_name_free(mut field_name: *mut libc::c_char) {
+pub unsafe fn mailimf_field_name_free(mut field_name: *mut libc::c_char) {
     free(field_name as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_keywords_free(mut keywords: *mut mailimf_keywords) {
+pub unsafe fn mailimf_keywords_free(mut keywords: *mut mailimf_keywords) {
     clist_foreach(
         (*keywords).kw_list,
-        ::std::mem::transmute::<Option<unsafe extern "C" fn(_: *mut libc::c_char) -> ()>, clist_func>(
-            Some(mailimf_phrase_free),
-        ),
+        ::std::mem::transmute::<Option<unsafe fn(_: *mut libc::c_char) -> ()>, clist_func>(Some(
+            mailimf_phrase_free,
+        )),
         0 as *mut libc::c_void,
     );
     clist_free((*keywords).kw_list);
     free(keywords as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_comments_free(mut comments: *mut mailimf_comments) {
+pub unsafe fn mailimf_comments_free(mut comments: *mut mailimf_comments) {
     mailimf_unstructured_free((*comments).cm_value);
     free(comments as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_subject_free(mut subject: *mut mailimf_subject) {
+pub unsafe fn mailimf_subject_free(mut subject: *mut mailimf_subject) {
     mailimf_unstructured_free((*subject).sbj_value);
     free(subject as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_references_free(mut references: *mut mailimf_references) {
+pub unsafe fn mailimf_references_free(mut references: *mut mailimf_references) {
     clist_foreach(
         (*references).mid_list,
-        ::std::mem::transmute::<Option<unsafe extern "C" fn(_: *mut libc::c_char) -> ()>, clist_func>(
-            Some(mailimf_msg_id_free),
-        ),
+        ::std::mem::transmute::<Option<unsafe fn(_: *mut libc::c_char) -> ()>, clist_func>(Some(
+            mailimf_msg_id_free,
+        )),
         0 as *mut libc::c_void,
     );
     clist_free((*references).mid_list);
     free(references as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_msg_id_free(mut msg_id: *mut libc::c_char) {
+pub unsafe fn mailimf_msg_id_free(mut msg_id: *mut libc::c_char) {
     free(msg_id as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_in_reply_to_free(mut in_reply_to: *mut mailimf_in_reply_to) {
+pub unsafe fn mailimf_in_reply_to_free(mut in_reply_to: *mut mailimf_in_reply_to) {
     clist_foreach(
         (*in_reply_to).mid_list,
-        ::std::mem::transmute::<Option<unsafe extern "C" fn(_: *mut libc::c_char) -> ()>, clist_func>(
-            Some(mailimf_msg_id_free),
-        ),
+        ::std::mem::transmute::<Option<unsafe fn(_: *mut libc::c_char) -> ()>, clist_func>(Some(
+            mailimf_msg_id_free,
+        )),
         0 as *mut libc::c_void,
     );
     clist_free((*in_reply_to).mid_list);
     free(in_reply_to as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_message_id_free(mut message_id: *mut mailimf_message_id) {
+pub unsafe fn mailimf_message_id_free(mut message_id: *mut mailimf_message_id) {
     if !(*message_id).mid_value.is_null() {
         mailimf_msg_id_free((*message_id).mid_value);
     }
     free(message_id as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_bcc_free(mut bcc: *mut mailimf_bcc) {
+pub unsafe fn mailimf_bcc_free(mut bcc: *mut mailimf_bcc) {
     if !(*bcc).bcc_addr_list.is_null() {
         mailimf_address_list_free((*bcc).bcc_addr_list);
     }
     free(bcc as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_cc_free(mut cc: *mut mailimf_cc) {
+pub unsafe fn mailimf_cc_free(mut cc: *mut mailimf_cc) {
     if !(*cc).cc_addr_list.is_null() {
         mailimf_address_list_free((*cc).cc_addr_list);
     }
     free(cc as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_to_free(mut to: *mut mailimf_to) {
+pub unsafe fn mailimf_to_free(mut to: *mut mailimf_to) {
     if !(*to).to_addr_list.is_null() {
         mailimf_address_list_free((*to).to_addr_list);
     }
     free(to as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_reply_to_free(mut reply_to: *mut mailimf_reply_to) {
+pub unsafe fn mailimf_reply_to_free(mut reply_to: *mut mailimf_reply_to) {
     if !(*reply_to).rt_addr_list.is_null() {
         mailimf_address_list_free((*reply_to).rt_addr_list);
     }
     free(reply_to as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_sender_free(mut sender: *mut mailimf_sender) {
+pub unsafe fn mailimf_sender_free(mut sender: *mut mailimf_sender) {
     if !(*sender).snd_mb.is_null() {
         mailimf_mailbox_free((*sender).snd_mb);
     }
     free(sender as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_from_free(mut from: *mut mailimf_from) {
+pub unsafe fn mailimf_from_free(mut from: *mut mailimf_from) {
     if !(*from).frm_mb_list.is_null() {
         mailimf_mailbox_list_free((*from).frm_mb_list);
     }
     free(from as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_orig_date_free(mut orig_date: *mut mailimf_orig_date) {
+pub unsafe fn mailimf_orig_date_free(mut orig_date: *mut mailimf_orig_date) {
     if !(*orig_date).dt_date_time.is_null() {
         mailimf_date_time_free((*orig_date).dt_date_time);
     }
     free(orig_date as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_return_free(mut return_path: *mut mailimf_return) {
+pub unsafe fn mailimf_return_free(mut return_path: *mut mailimf_return) {
     mailimf_path_free((*return_path).ret_path);
     free(return_path as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_path_free(mut path: *mut mailimf_path) {
+pub unsafe fn mailimf_path_free(mut path: *mut mailimf_path) {
     if !(*path).pt_addr_spec.is_null() {
         mailimf_addr_spec_free((*path).pt_addr_spec);
     }
     free(path as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_fields_new(mut fld_list: *mut clist) -> *mut mailimf_fields {
+pub unsafe fn mailimf_fields_new(mut fld_list: *mut clist) -> *mut mailimf_fields {
     let mut fields: *mut mailimf_fields = 0 as *mut mailimf_fields;
     fields =
         malloc(::std::mem::size_of::<mailimf_fields>() as libc::c_ulong) as *mut mailimf_fields;
@@ -939,7 +891,7 @@ pub unsafe extern "C" fn mailimf_fields_new(mut fld_list: *mut clist) -> *mut ma
     return fields;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_field_new(
+pub unsafe fn mailimf_field_new(
     mut fld_type: libc::c_int,
     mut fld_return_path: *mut mailimf_return,
     mut fld_resent_date: *mut mailimf_orig_date,
@@ -998,7 +950,7 @@ pub unsafe extern "C" fn mailimf_field_new(
     return field;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_orig_date_new(
+pub unsafe fn mailimf_orig_date_new(
     mut dt_date_time: *mut mailimf_date_time,
 ) -> *mut mailimf_orig_date {
     let mut orig_date: *mut mailimf_orig_date = 0 as *mut mailimf_orig_date;
@@ -1011,9 +963,7 @@ pub unsafe extern "C" fn mailimf_orig_date_new(
     return orig_date;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_from_new(
-    mut frm_mb_list: *mut mailimf_mailbox_list,
-) -> *mut mailimf_from {
+pub unsafe fn mailimf_from_new(mut frm_mb_list: *mut mailimf_mailbox_list) -> *mut mailimf_from {
     let mut from: *mut mailimf_from = 0 as *mut mailimf_from;
     from = malloc(::std::mem::size_of::<mailimf_from>() as libc::c_ulong) as *mut mailimf_from;
     if from.is_null() {
@@ -1023,9 +973,7 @@ pub unsafe extern "C" fn mailimf_from_new(
     return from;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_sender_new(
-    mut snd_mb: *mut mailimf_mailbox,
-) -> *mut mailimf_sender {
+pub unsafe fn mailimf_sender_new(mut snd_mb: *mut mailimf_mailbox) -> *mut mailimf_sender {
     let mut sender: *mut mailimf_sender = 0 as *mut mailimf_sender;
     sender =
         malloc(::std::mem::size_of::<mailimf_sender>() as libc::c_ulong) as *mut mailimf_sender;
@@ -1036,7 +984,7 @@ pub unsafe extern "C" fn mailimf_sender_new(
     return sender;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_reply_to_new(
+pub unsafe fn mailimf_reply_to_new(
     mut rt_addr_list: *mut mailimf_address_list,
 ) -> *mut mailimf_reply_to {
     let mut reply_to: *mut mailimf_reply_to = 0 as *mut mailimf_reply_to;
@@ -1049,9 +997,7 @@ pub unsafe extern "C" fn mailimf_reply_to_new(
     return reply_to;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_to_new(
-    mut to_addr_list: *mut mailimf_address_list,
-) -> *mut mailimf_to {
+pub unsafe fn mailimf_to_new(mut to_addr_list: *mut mailimf_address_list) -> *mut mailimf_to {
     let mut to: *mut mailimf_to = 0 as *mut mailimf_to;
     to = malloc(::std::mem::size_of::<mailimf_to>() as libc::c_ulong) as *mut mailimf_to;
     if to.is_null() {
@@ -1061,9 +1007,7 @@ pub unsafe extern "C" fn mailimf_to_new(
     return to;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_cc_new(
-    mut cc_addr_list: *mut mailimf_address_list,
-) -> *mut mailimf_cc {
+pub unsafe fn mailimf_cc_new(mut cc_addr_list: *mut mailimf_address_list) -> *mut mailimf_cc {
     let mut cc: *mut mailimf_cc = 0 as *mut mailimf_cc;
     cc = malloc(::std::mem::size_of::<mailimf_cc>() as libc::c_ulong) as *mut mailimf_cc;
     if cc.is_null() {
@@ -1073,9 +1017,7 @@ pub unsafe extern "C" fn mailimf_cc_new(
     return cc;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_bcc_new(
-    mut bcc_addr_list: *mut mailimf_address_list,
-) -> *mut mailimf_bcc {
+pub unsafe fn mailimf_bcc_new(mut bcc_addr_list: *mut mailimf_address_list) -> *mut mailimf_bcc {
     let mut bcc: *mut mailimf_bcc = 0 as *mut mailimf_bcc;
     bcc = malloc(::std::mem::size_of::<mailimf_bcc>() as libc::c_ulong) as *mut mailimf_bcc;
     if bcc.is_null() {
@@ -1085,9 +1027,7 @@ pub unsafe extern "C" fn mailimf_bcc_new(
     return bcc;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_message_id_new(
-    mut mid_value: *mut libc::c_char,
-) -> *mut mailimf_message_id {
+pub unsafe fn mailimf_message_id_new(mut mid_value: *mut libc::c_char) -> *mut mailimf_message_id {
     let mut message_id: *mut mailimf_message_id = 0 as *mut mailimf_message_id;
     message_id = malloc(::std::mem::size_of::<mailimf_message_id>() as libc::c_ulong)
         as *mut mailimf_message_id;
@@ -1098,9 +1038,7 @@ pub unsafe extern "C" fn mailimf_message_id_new(
     return message_id;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_in_reply_to_new(
-    mut mid_list: *mut clist,
-) -> *mut mailimf_in_reply_to {
+pub unsafe fn mailimf_in_reply_to_new(mut mid_list: *mut clist) -> *mut mailimf_in_reply_to {
     let mut in_reply_to: *mut mailimf_in_reply_to = 0 as *mut mailimf_in_reply_to;
     in_reply_to = malloc(::std::mem::size_of::<mailimf_in_reply_to>() as libc::c_ulong)
         as *mut mailimf_in_reply_to;
@@ -1112,9 +1050,7 @@ pub unsafe extern "C" fn mailimf_in_reply_to_new(
 }
 /* != NULL */
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_references_new(
-    mut mid_list: *mut clist,
-) -> *mut mailimf_references {
+pub unsafe fn mailimf_references_new(mut mid_list: *mut clist) -> *mut mailimf_references {
     let mut ref_0: *mut mailimf_references = 0 as *mut mailimf_references;
     ref_0 = malloc(::std::mem::size_of::<mailimf_references>() as libc::c_ulong)
         as *mut mailimf_references;
@@ -1125,9 +1061,7 @@ pub unsafe extern "C" fn mailimf_references_new(
     return ref_0;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_subject_new(
-    mut sbj_value: *mut libc::c_char,
-) -> *mut mailimf_subject {
+pub unsafe fn mailimf_subject_new(mut sbj_value: *mut libc::c_char) -> *mut mailimf_subject {
     let mut subject: *mut mailimf_subject = 0 as *mut mailimf_subject;
     subject =
         malloc(::std::mem::size_of::<mailimf_subject>() as libc::c_ulong) as *mut mailimf_subject;
@@ -1138,9 +1072,7 @@ pub unsafe extern "C" fn mailimf_subject_new(
     return subject;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_comments_new(
-    mut cm_value: *mut libc::c_char,
-) -> *mut mailimf_comments {
+pub unsafe fn mailimf_comments_new(mut cm_value: *mut libc::c_char) -> *mut mailimf_comments {
     let mut comments: *mut mailimf_comments = 0 as *mut mailimf_comments;
     comments =
         malloc(::std::mem::size_of::<mailimf_comments>() as libc::c_ulong) as *mut mailimf_comments;
@@ -1151,7 +1083,7 @@ pub unsafe extern "C" fn mailimf_comments_new(
     return comments;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_keywords_new(mut kw_list: *mut clist) -> *mut mailimf_keywords {
+pub unsafe fn mailimf_keywords_new(mut kw_list: *mut clist) -> *mut mailimf_keywords {
     let mut keywords: *mut mailimf_keywords = 0 as *mut mailimf_keywords;
     keywords =
         malloc(::std::mem::size_of::<mailimf_keywords>() as libc::c_ulong) as *mut mailimf_keywords;
@@ -1162,9 +1094,7 @@ pub unsafe extern "C" fn mailimf_keywords_new(mut kw_list: *mut clist) -> *mut m
     return keywords;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_return_new(
-    mut ret_path: *mut mailimf_path,
-) -> *mut mailimf_return {
+pub unsafe fn mailimf_return_new(mut ret_path: *mut mailimf_path) -> *mut mailimf_return {
     let mut return_path: *mut mailimf_return = 0 as *mut mailimf_return;
     return_path =
         malloc(::std::mem::size_of::<mailimf_return>() as libc::c_ulong) as *mut mailimf_return;
@@ -1175,9 +1105,7 @@ pub unsafe extern "C" fn mailimf_return_new(
     return return_path;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_path_new(
-    mut pt_addr_spec: *mut libc::c_char,
-) -> *mut mailimf_path {
+pub unsafe fn mailimf_path_new(mut pt_addr_spec: *mut libc::c_char) -> *mut mailimf_path {
     let mut path: *mut mailimf_path = 0 as *mut mailimf_path;
     path = malloc(::std::mem::size_of::<mailimf_path>() as libc::c_ulong) as *mut mailimf_path;
     if path.is_null() {
@@ -1187,7 +1115,7 @@ pub unsafe extern "C" fn mailimf_path_new(
     return path;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_optional_field_new(
+pub unsafe fn mailimf_optional_field_new(
     mut fld_name: *mut libc::c_char,
     mut fld_value: *mut libc::c_char,
 ) -> *mut mailimf_optional_field {
@@ -1203,54 +1131,54 @@ pub unsafe extern "C" fn mailimf_optional_field_new(
 }
 /* internal use */
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_atom_free(mut atom: *mut libc::c_char) {
+pub unsafe fn mailimf_atom_free(mut atom: *mut libc::c_char) {
     free(atom as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_dot_atom_free(mut dot_atom: *mut libc::c_char) {
+pub unsafe fn mailimf_dot_atom_free(mut dot_atom: *mut libc::c_char) {
     free(dot_atom as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_dot_atom_text_free(mut dot_atom: *mut libc::c_char) {
+pub unsafe fn mailimf_dot_atom_text_free(mut dot_atom: *mut libc::c_char) {
     free(dot_atom as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_quoted_string_free(mut quoted_string: *mut libc::c_char) {
+pub unsafe fn mailimf_quoted_string_free(mut quoted_string: *mut libc::c_char) {
     free(quoted_string as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_word_free(mut word: *mut libc::c_char) {
+pub unsafe fn mailimf_word_free(mut word: *mut libc::c_char) {
     free(word as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_angle_addr_free(mut angle_addr: *mut libc::c_char) {
+pub unsafe fn mailimf_angle_addr_free(mut angle_addr: *mut libc::c_char) {
     free(angle_addr as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_local_part_free(mut local_part: *mut libc::c_char) {
+pub unsafe fn mailimf_local_part_free(mut local_part: *mut libc::c_char) {
     free(local_part as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_domain_free(mut domain: *mut libc::c_char) {
+pub unsafe fn mailimf_domain_free(mut domain: *mut libc::c_char) {
     free(domain as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_domain_literal_free(mut domain_literal: *mut libc::c_char) {
+pub unsafe fn mailimf_domain_literal_free(mut domain_literal: *mut libc::c_char) {
     free(domain_literal as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_id_left_free(mut id_left: *mut libc::c_char) {
+pub unsafe fn mailimf_id_left_free(mut id_left: *mut libc::c_char) {
     free(id_left as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_id_right_free(mut id_right: *mut libc::c_char) {
+pub unsafe fn mailimf_id_right_free(mut id_right: *mut libc::c_char) {
     free(id_right as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_no_fold_quote_free(mut nfq: *mut libc::c_char) {
+pub unsafe fn mailimf_no_fold_quote_free(mut nfq: *mut libc::c_char) {
     free(nfq as *mut libc::c_void);
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailimf_no_fold_literal_free(mut nfl: *mut libc::c_char) {
+pub unsafe fn mailimf_no_fold_literal_free(mut nfl: *mut libc::c_char) {
     free(nfl as *mut libc::c_void);
 }

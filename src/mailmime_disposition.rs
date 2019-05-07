@@ -1,187 +1,18 @@
 use libc;
+use libc::toupper;
 
 use crate::clist::*;
-use crate::mailmime::toupper;
+use crate::mailimf::*;
+use crate::mailmime::*;
 use crate::mailmime_types::*;
+use crate::x::*;
 
-extern "C" {
-    #[no_mangle]
-    fn mailimf_cfws_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailimf_unstrict_char_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        token: libc::c_char,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailimf_token_case_insensitive_len_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        token: *mut libc::c_char,
-        token_length: size_t,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailimf_quoted_string_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut *mut libc::c_char,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailimf_number_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut uint32_t,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailmime_parameter_free(parameter: *mut mailmime_parameter);
-    #[no_mangle]
-    fn mailmime_disposition_new(
-        dsp_type: *mut mailmime_disposition_type,
-        dsp_parms: *mut clist,
-    ) -> *mut mailmime_disposition;
-    #[no_mangle]
-    fn mailmime_disposition_type_new(
-        dt_type: libc::c_int,
-        dt_extension: *mut libc::c_char,
-    ) -> *mut mailmime_disposition_type;
-    #[no_mangle]
-    fn mailmime_disposition_type_free(dsp_type: *mut mailmime_disposition_type);
-    #[no_mangle]
-    fn mailmime_disposition_parm_new(
-        pa_type: libc::c_int,
-        pa_filename: *mut libc::c_char,
-        pa_creation_date: *mut libc::c_char,
-        pa_modification_date: *mut libc::c_char,
-        pa_read_date: *mut libc::c_char,
-        pa_size: size_t,
-        pa_parameter: *mut mailmime_parameter,
-    ) -> *mut mailmime_disposition_parm;
-    #[no_mangle]
-    fn mailmime_disposition_parm_free(dsp_parm: *mut mailmime_disposition_parm);
-    #[no_mangle]
-    fn mailmime_filename_parm_free(filename: *mut libc::c_char);
-    #[no_mangle]
-    fn mailmime_creation_date_parm_free(date: *mut libc::c_char);
-    #[no_mangle]
-    fn mailmime_modification_date_parm_free(date: *mut libc::c_char);
-    #[no_mangle]
-    fn mailmime_read_date_parm_free(date: *mut libc::c_char);
-    #[no_mangle]
-    fn mailmime_parameter_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut *mut mailmime_parameter,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn strlen(_: *const libc::c_char) -> libc::c_ulong;
-    #[no_mangle]
-    fn mailmime_value_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut *mut libc::c_char,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn free(_: *mut libc::c_void);
-    #[no_mangle]
-    fn mailmime_extension_token_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut *mut libc::c_char,
-    ) -> libc::c_int;
-}
-pub type __darwin_ct_rune_t = libc::c_int;
-pub type __darwin_size_t = libc::c_ulong;
-pub type size_t = __darwin_size_t;
-pub type uint32_t = libc::c_uint;
+pub const MAILMIME_DISPOSITION_TYPE_EXTENSION: libc::c_uint = 3;
+pub const MAILMIME_DISPOSITION_TYPE_ATTACHMENT: libc::c_uint = 2;
+pub const MAILMIME_DISPOSITION_TYPE_INLINE: libc::c_uint = 1;
+pub const MAILMIME_DISPOSITION_TYPE_ERROR: libc::c_uint = 0;
 
-/* these are the possible returned error codes */
-pub type unnamed = libc::c_uint;
-pub const MAILIMF_ERROR_FILE: unnamed = 4;
-pub const MAILIMF_ERROR_INVAL: unnamed = 3;
-pub const MAILIMF_ERROR_MEMORY: unnamed = 2;
-pub const MAILIMF_ERROR_PARSE: unnamed = 1;
-pub const MAILIMF_NO_ERROR: unnamed = 0;
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_parameter {
-    pub pa_name: *mut libc::c_char,
-    pub pa_value: *mut libc::c_char,
-}
-pub type unnamed_0 = libc::c_uint;
-pub const MAILMIME_DISPOSITION_TYPE_EXTENSION: unnamed_0 = 3;
-pub const MAILMIME_DISPOSITION_TYPE_ATTACHMENT: unnamed_0 = 2;
-pub const MAILMIME_DISPOSITION_TYPE_INLINE: unnamed_0 = 1;
-pub const MAILMIME_DISPOSITION_TYPE_ERROR: unnamed_0 = 0;
-pub type unnamed_1 = libc::c_uint;
-pub const MAILMIME_DISPOSITION_PARM_PARAMETER: unnamed_1 = 5;
-pub const MAILMIME_DISPOSITION_PARM_SIZE: unnamed_1 = 4;
-pub const MAILMIME_DISPOSITION_PARM_READ_DATE: unnamed_1 = 3;
-pub const MAILMIME_DISPOSITION_PARM_MODIFICATION_DATE: unnamed_1 = 2;
-pub const MAILMIME_DISPOSITION_PARM_CREATION_DATE: unnamed_1 = 1;
-pub const MAILMIME_DISPOSITION_PARM_FILENAME: unnamed_1 = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_disposition_parm {
-    pub pa_type: libc::c_int,
-    pub pa_data: unnamed_2,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union unnamed_2 {
-    pub pa_filename: *mut libc::c_char,
-    pub pa_creation_date: *mut libc::c_char,
-    pub pa_modification_date: *mut libc::c_char,
-    pub pa_read_date: *mut libc::c_char,
-    pub pa_size: size_t,
-    pub pa_parameter: *mut mailmime_parameter,
-}
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: mailmime_disposition.h,v 1.11 2008/02/20 22:15:52 hoa Exp $
- */
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_parse(
+pub unsafe fn mailmime_disposition_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -265,7 +96,7 @@ pub unsafe extern "C" fn mailmime_disposition_parse(
             clist_foreach(
                 list,
                 ::std::mem::transmute::<
-                    Option<unsafe extern "C" fn(_: *mut mailmime_disposition_parm) -> ()>,
+                    Option<unsafe fn(_: *mut mailmime_disposition_parm) -> ()>,
                     clist_func,
                 >(Some(mailmime_disposition_parm_free)),
                 0 as *mut libc::c_void,
@@ -309,7 +140,7 @@ pub unsafe extern "C" fn mailmime_disposition_parse(
 /*
  * $Id: mailmime_disposition.c,v 1.17 2011/05/03 16:30:22 hoa Exp $
  */
-unsafe extern "C" fn mailmime_disposition_parm_parse(
+unsafe fn mailmime_disposition_parm_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -477,7 +308,7 @@ unsafe extern "C" fn mailmime_disposition_parm_parse(
     }
     return res;
 }
-unsafe extern "C" fn mailmime_size_parm_parse(
+unsafe fn mailmime_size_parm_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -513,7 +344,7 @@ unsafe extern "C" fn mailmime_size_parm_parse(
     *result = value as size_t;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-unsafe extern "C" fn mailmime_read_date_parm_parse(
+unsafe fn mailmime_read_date_parm_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -549,7 +380,7 @@ unsafe extern "C" fn mailmime_read_date_parm_parse(
     *result = value;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-unsafe extern "C" fn mailmime_quoted_date_time_parse(
+unsafe fn mailmime_quoted_date_time_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -557,7 +388,7 @@ unsafe extern "C" fn mailmime_quoted_date_time_parse(
 ) -> libc::c_int {
     return mailimf_quoted_string_parse(message, length, indx, result);
 }
-unsafe extern "C" fn mailmime_modification_date_parm_parse(
+unsafe fn mailmime_modification_date_parm_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -593,7 +424,7 @@ unsafe extern "C" fn mailmime_modification_date_parm_parse(
     *result = value;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-unsafe extern "C" fn mailmime_creation_date_parm_parse(
+unsafe fn mailmime_creation_date_parm_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -629,7 +460,7 @@ unsafe extern "C" fn mailmime_creation_date_parm_parse(
     *result = value;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-unsafe extern "C" fn mailmime_filename_parm_parse(
+unsafe fn mailmime_filename_parm_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,
@@ -666,7 +497,7 @@ unsafe extern "C" fn mailmime_filename_parm_parse(
     return MAILIMF_NO_ERROR as libc::c_int;
 }
 #[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_guess_type(
+pub unsafe fn mailmime_disposition_guess_type(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: size_t,
@@ -687,7 +518,7 @@ pub unsafe extern "C" fn mailmime_disposition_guess_type(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_type_parse(
+pub unsafe fn mailmime_disposition_type_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
     mut indx: *mut size_t,

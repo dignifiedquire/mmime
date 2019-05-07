@@ -1,524 +1,11 @@
 use libc;
-extern "C" {
-    /* Allocate a new pointer list */
-    #[no_mangle]
-    fn clist_new() -> *mut clist;
-    /* Destroys a list. Data pointed by data pointers is NOT freed. */
-    #[no_mangle]
-    fn clist_free(_: *mut clist);
-    /* Inserts this data pointer after the element pointed by the iterator */
-    #[no_mangle]
-    fn clist_insert_after(_: *mut clist, _: *mut clistiter, _: *mut libc::c_void) -> libc::c_int;
-    /* Deletes the element pointed by the iterator.
-    Returns an iterator to the next element. */
-    #[no_mangle]
-    fn clist_delete(_: *mut clist, _: *mut clistiter) -> *mut clistiter;
-    #[no_mangle]
-    fn clist_foreach(lst: *mut clist, func: clist_func, data: *mut libc::c_void);
-    #[no_mangle]
-    fn snprintf(
-        _: *mut libc::c_char,
-        _: libc::c_ulong,
-        _: *const libc::c_char,
-        _: ...
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn mailmime_composite_type_new(
-        ct_type: libc::c_int,
-        ct_token: *mut libc::c_char,
-    ) -> *mut mailmime_composite_type;
-    #[no_mangle]
-    fn mailmime_composite_type_free(ct: *mut mailmime_composite_type);
-    #[no_mangle]
-    fn mailmime_content_new(
-        ct_type: *mut mailmime_type,
-        ct_subtype: *mut libc::c_char,
-        ct_parameters: *mut clist,
-    ) -> *mut mailmime_content;
-    #[no_mangle]
-    fn mailmime_content_free(content: *mut mailmime_content);
-    #[no_mangle]
-    fn mailmime_discrete_type_new(
-        dt_type: libc::c_int,
-        dt_extension: *mut libc::c_char,
-    ) -> *mut mailmime_discrete_type;
-    #[no_mangle]
-    fn mailmime_discrete_type_free(discrete_type: *mut mailmime_discrete_type);
-    #[no_mangle]
-    fn mailmime_encoding_free(encoding: *mut mailmime_mechanism);
-    #[no_mangle]
-    fn mailmime_mechanism_new(
-        enc_type: libc::c_int,
-        enc_token: *mut libc::c_char,
-    ) -> *mut mailmime_mechanism;
-    #[no_mangle]
-    fn mailmime_mechanism_free(mechanism: *mut mailmime_mechanism);
-    #[no_mangle]
-    fn mailmime_parameter_new(
-        pa_name: *mut libc::c_char,
-        pa_value: *mut libc::c_char,
-    ) -> *mut mailmime_parameter;
-    #[no_mangle]
-    fn mailmime_parameter_free(parameter: *mut mailmime_parameter);
-    #[no_mangle]
-    fn mailmime_type_new(
-        tp_type: libc::c_int,
-        tp_discrete_type: *mut mailmime_discrete_type,
-        tp_composite_type: *mut mailmime_composite_type,
-    ) -> *mut mailmime_type;
-    #[no_mangle]
-    fn mailmime_type_free(type_0: *mut mailmime_type);
-    /*
-    void mailmime_x_token_free(gchar * x_token);
-    */
-    #[no_mangle]
-    fn mailmime_field_new(
-        fld_type: libc::c_int,
-        fld_content: *mut mailmime_content,
-        fld_encoding: *mut mailmime_mechanism,
-        fld_id: *mut libc::c_char,
-        fld_description: *mut libc::c_char,
-        fld_version: uint32_t,
-        fld_disposition: *mut mailmime_disposition,
-        fld_language: *mut mailmime_language,
-        fld_location: *mut libc::c_char,
-    ) -> *mut mailmime_field;
-    #[no_mangle]
-    fn mailmime_field_free(field: *mut mailmime_field);
-    #[no_mangle]
-    fn mailmime_fields_new(fld_list: *mut clist) -> *mut mailmime_fields;
-    #[no_mangle]
-    fn mailmime_fields_free(fields: *mut mailmime_fields);
-    #[no_mangle]
-    fn mailmime_data_new(
-        dt_type: libc::c_int,
-        dt_encoding: libc::c_int,
-        dt_encoded: libc::c_int,
-        dt_data: *const libc::c_char,
-        dt_length: size_t,
-        dt_filename: *mut libc::c_char,
-    ) -> *mut mailmime_data;
-    #[no_mangle]
-    fn mailmime_new(
-        mm_type: libc::c_int,
-        mm_mime_start: *const libc::c_char,
-        mm_length: size_t,
-        mm_mime_fields: *mut mailmime_fields,
-        mm_content_type: *mut mailmime_content,
-        mm_body: *mut mailmime_data,
-        mm_preamble: *mut mailmime_data,
-        mm_epilogue: *mut mailmime_data,
-        mm_mp_list: *mut clist,
-        mm_fields: *mut mailimf_fields,
-        mm_msg_mime: *mut mailmime,
-    ) -> *mut mailmime;
-    #[no_mangle]
-    fn mailmime_free(mime: *mut mailmime);
-    #[no_mangle]
-    fn mailmime_disposition_new(
-        dsp_type: *mut mailmime_disposition_type,
-        dsp_parms: *mut clist,
-    ) -> *mut mailmime_disposition;
-    #[no_mangle]
-    fn mailmime_disposition_free(dsp: *mut mailmime_disposition);
-    #[no_mangle]
-    fn mailmime_disposition_type_new(
-        dt_type: libc::c_int,
-        dt_extension: *mut libc::c_char,
-    ) -> *mut mailmime_disposition_type;
-    #[no_mangle]
-    fn mailmime_disposition_type_free(dsp_type: *mut mailmime_disposition_type);
-    #[no_mangle]
-    fn mailmime_disposition_parm_new(
-        pa_type: libc::c_int,
-        pa_filename: *mut libc::c_char,
-        pa_creation_date: *mut libc::c_char,
-        pa_modification_date: *mut libc::c_char,
-        pa_read_date: *mut libc::c_char,
-        pa_size: size_t,
-        pa_parameter: *mut mailmime_parameter,
-    ) -> *mut mailmime_disposition_parm;
-    #[no_mangle]
-    fn mailmime_disposition_parm_free(dsp_parm: *mut mailmime_disposition_parm);
-    #[no_mangle]
-    fn free(_: *mut libc::c_void);
-    #[no_mangle]
-    fn strdup(_: *const libc::c_char) -> *mut libc::c_char;
-    #[no_mangle]
-    fn getpid() -> pid_t;
-    #[no_mangle]
-    fn gethostname(_: *mut libc::c_char, _: size_t) -> libc::c_int;
-    #[no_mangle]
-    fn random() -> libc::c_long;
-    #[no_mangle]
-    fn time(_: *mut time_t) -> time_t;
-    #[no_mangle]
-    fn strcasecmp(_: *const libc::c_char, _: *const libc::c_char) -> libc::c_int;
-    #[no_mangle]
-    fn strlen(_: *const libc::c_char) -> libc::c_ulong;
-    /*
-     * libEtPan! -- a mail stuff library
-     *
-     * Copyright (C) 2001, 2005 - DINH Viet Hoa
-     * All rights reserved.
-     *
-     * Redistribution and use in source and binary forms, with or without
-     * modification, are permitted provided that the following conditions
-     * are met:
-     * 1. Redistributions of source code must retain the above copyright
-     *    notice, this list of conditions and the following disclaimer.
-     * 2. Redistributions in binary form must reproduce the above copyright
-     *    notice, this list of conditions and the following disclaimer in the
-     *    documentation and/or other materials provided with the distribution.
-     * 3. Neither the name of the libEtPan! project nor the names of its
-     *    contributors may be used to endorse or promote products derived
-     *    from this software without specific prior written permission.
-     *
-     * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
-     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-     * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-     * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
-     * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-     * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-     * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-     * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-     * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-     * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-     * SUCH DAMAGE.
-     */
-    /*
-     * $Id: mailmime.h,v 1.18 2011/01/06 00:09:52 hoa Exp $
-     */
-    #[no_mangle]
-    fn mailmime_content_parse(
-        message: *const libc::c_char,
-        length: size_t,
-        indx: *mut size_t,
-        result: *mut *mut mailmime_content,
-    ) -> libc::c_int;
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
-    fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
-}
-pub type __int32_t = libc::c_int;
-pub type __darwin_size_t = libc::c_ulong;
-pub type __darwin_time_t = libc::c_long;
-pub type __darwin_pid_t = __int32_t;
-pub type pid_t = __darwin_pid_t;
-pub type size_t = __darwin_size_t;
-pub type time_t = __darwin_time_t;
-pub type uint32_t = libc::c_uint;
-/*
- * libEtPan! -- a mail stuff library
- *
- * clist - Implements simple generic double-linked pointer lists
- *
- * Copyright (c) 1999-2005, Ga�l Roualland <gael.roualland@iname.com>
- * interface changes - 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: clist.h,v 1.13 2011/05/09 21:49:46 hoa Exp $
- */
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct clistcell_s {
-    pub data: *mut libc::c_void,
-    pub previous: *mut clistcell_s,
-    pub next: *mut clistcell_s,
-}
-pub type clistcell = clistcell_s;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct clist_s {
-    pub first: *mut clistcell,
-    pub last: *mut clistcell,
-    pub count: libc::c_int,
-}
-pub type clist = clist_s;
-pub type clistiter = clistcell;
-pub type clist_func =
-    Option<unsafe extern "C" fn(_: *mut libc::c_void, _: *mut libc::c_void) -> ()>;
-/*
-  mailimf_fields is a list of header fields
 
-  - fld_list is a list of header fields
-*/
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailimf_fields {
-    pub fld_list: *mut clist,
-}
-/* these are the possible returned error codes */
-pub type unnamed = libc::c_uint;
-pub const MAILIMF_ERROR_FILE: unnamed = 4;
-pub const MAILIMF_ERROR_INVAL: unnamed = 3;
-pub const MAILIMF_ERROR_MEMORY: unnamed = 2;
-pub const MAILIMF_ERROR_PARSE: unnamed = 1;
-pub const MAILIMF_NO_ERROR: unnamed = 0;
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: mailmime_types.h,v 1.33 2011/01/06 00:09:52 hoa Exp $
- */
-pub type unnamed_0 = libc::c_uint;
-pub const MAILMIME_COMPOSITE_TYPE_EXTENSION: unnamed_0 = 3;
-pub const MAILMIME_COMPOSITE_TYPE_MULTIPART: unnamed_0 = 2;
-pub const MAILMIME_COMPOSITE_TYPE_MESSAGE: unnamed_0 = 1;
-pub const MAILMIME_COMPOSITE_TYPE_ERROR: unnamed_0 = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_composite_type {
-    pub ct_type: libc::c_int,
-    pub ct_token: *mut libc::c_char,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_content {
-    pub ct_type: *mut mailmime_type,
-    pub ct_subtype: *mut libc::c_char,
-    pub ct_parameters: *mut clist,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_type {
-    pub tp_type: libc::c_int,
-    pub tp_data: unnamed_1,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union unnamed_1 {
-    pub tp_discrete_type: *mut mailmime_discrete_type,
-    pub tp_composite_type: *mut mailmime_composite_type,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_discrete_type {
-    pub dt_type: libc::c_int,
-    pub dt_extension: *mut libc::c_char,
-}
-pub type unnamed_2 = libc::c_uint;
-pub const MAILMIME_DISCRETE_TYPE_EXTENSION: unnamed_2 = 6;
-pub const MAILMIME_DISCRETE_TYPE_APPLICATION: unnamed_2 = 5;
-pub const MAILMIME_DISCRETE_TYPE_VIDEO: unnamed_2 = 4;
-pub const MAILMIME_DISCRETE_TYPE_AUDIO: unnamed_2 = 3;
-pub const MAILMIME_DISCRETE_TYPE_IMAGE: unnamed_2 = 2;
-pub const MAILMIME_DISCRETE_TYPE_TEXT: unnamed_2 = 1;
-pub const MAILMIME_DISCRETE_TYPE_ERROR: unnamed_2 = 0;
-pub type unnamed_3 = libc::c_uint;
-pub const MAILMIME_FIELD_LOCATION: unnamed_3 = 8;
-pub const MAILMIME_FIELD_LANGUAGE: unnamed_3 = 7;
-pub const MAILMIME_FIELD_DISPOSITION: unnamed_3 = 6;
-pub const MAILMIME_FIELD_VERSION: unnamed_3 = 5;
-pub const MAILMIME_FIELD_DESCRIPTION: unnamed_3 = 4;
-pub const MAILMIME_FIELD_ID: unnamed_3 = 3;
-pub const MAILMIME_FIELD_TRANSFER_ENCODING: unnamed_3 = 2;
-pub const MAILMIME_FIELD_TYPE: unnamed_3 = 1;
-pub const MAILMIME_FIELD_NONE: unnamed_3 = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_field {
-    pub fld_type: libc::c_int,
-    pub fld_data: unnamed_4,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union unnamed_4 {
-    pub fld_content: *mut mailmime_content,
-    pub fld_encoding: *mut mailmime_mechanism,
-    pub fld_id: *mut libc::c_char,
-    pub fld_description: *mut libc::c_char,
-    pub fld_version: uint32_t,
-    pub fld_disposition: *mut mailmime_disposition,
-    pub fld_language: *mut mailmime_language,
-    pub fld_location: *mut libc::c_char,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_language {
-    pub lg_list: *mut clist,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_disposition {
-    pub dsp_type: *mut mailmime_disposition_type,
-    pub dsp_parms: *mut clist,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_disposition_type {
-    pub dsp_type: libc::c_int,
-    pub dsp_extension: *mut libc::c_char,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_mechanism {
-    pub enc_type: libc::c_int,
-    pub enc_token: *mut libc::c_char,
-}
-pub type unnamed_5 = libc::c_uint;
-pub const MAILMIME_MECHANISM_TOKEN: unnamed_5 = 6;
-pub const MAILMIME_MECHANISM_BASE64: unnamed_5 = 5;
-pub const MAILMIME_MECHANISM_QUOTED_PRINTABLE: unnamed_5 = 4;
-pub const MAILMIME_MECHANISM_BINARY: unnamed_5 = 3;
-pub const MAILMIME_MECHANISM_8BIT: unnamed_5 = 2;
-pub const MAILMIME_MECHANISM_7BIT: unnamed_5 = 1;
-pub const MAILMIME_MECHANISM_ERROR: unnamed_5 = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_fields {
-    pub fld_list: *mut clist,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_parameter {
-    pub pa_name: *mut libc::c_char,
-    pub pa_value: *mut libc::c_char,
-}
-pub type unnamed_6 = libc::c_uint;
-pub const MAILMIME_TYPE_COMPOSITE_TYPE: unnamed_6 = 2;
-pub const MAILMIME_TYPE_DISCRETE_TYPE: unnamed_6 = 1;
-pub const MAILMIME_TYPE_ERROR: unnamed_6 = 0;
-pub type unnamed_7 = libc::c_uint;
-pub const MAILMIME_DATA_FILE: unnamed_7 = 1;
-pub const MAILMIME_DATA_TEXT: unnamed_7 = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_data {
-    pub dt_type: libc::c_int,
-    pub dt_encoding: libc::c_int,
-    pub dt_encoded: libc::c_int,
-    pub dt_data: unnamed_8,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union unnamed_8 {
-    pub dt_text: unnamed_9,
-    pub dt_filename: *mut libc::c_char,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct unnamed_9 {
-    pub dt_data: *const libc::c_char,
-    pub dt_length: size_t,
-}
-pub type unnamed_10 = libc::c_uint;
-pub const MAILMIME_MESSAGE: unnamed_10 = 3;
-pub const MAILMIME_MULTIPLE: unnamed_10 = 2;
-pub const MAILMIME_SINGLE: unnamed_10 = 1;
-pub const MAILMIME_NONE: unnamed_10 = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime {
-    pub mm_parent_type: libc::c_int,
-    pub mm_parent: *mut mailmime,
-    pub mm_multipart_pos: *mut clistiter,
-    pub mm_type: libc::c_int,
-    pub mm_mime_start: *const libc::c_char,
-    pub mm_length: size_t,
-    pub mm_mime_fields: *mut mailmime_fields,
-    pub mm_content_type: *mut mailmime_content,
-    pub mm_body: *mut mailmime_data,
-    pub mm_data: unnamed_11,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union unnamed_11 {
-    pub mm_single: *mut mailmime_data,
-    pub mm_multipart: unnamed_13,
-    pub mm_message: unnamed_12,
-}
-/* message */
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct unnamed_12 {
-    pub mm_fields: *mut mailimf_fields,
-    pub mm_msg_mime: *mut mailmime,
-}
-/* multi-part */
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct unnamed_13 {
-    pub mm_preamble: *mut mailmime_data,
-    pub mm_epilogue: *mut mailmime_data,
-    pub mm_mp_list: *mut clist,
-}
-pub type unnamed_14 = libc::c_uint;
-pub const MAILMIME_DISPOSITION_PARM_PARAMETER: unnamed_14 = 5;
-pub const MAILMIME_DISPOSITION_PARM_SIZE: unnamed_14 = 4;
-pub const MAILMIME_DISPOSITION_PARM_READ_DATE: unnamed_14 = 3;
-pub const MAILMIME_DISPOSITION_PARM_MODIFICATION_DATE: unnamed_14 = 2;
-pub const MAILMIME_DISPOSITION_PARM_CREATION_DATE: unnamed_14 = 1;
-pub const MAILMIME_DISPOSITION_PARM_FILENAME: unnamed_14 = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct mailmime_disposition_parm {
-    pub pa_type: libc::c_int,
-    pub pa_data: unnamed_15,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union unnamed_15 {
-    pub pa_filename: *mut libc::c_char,
-    pub pa_creation_date: *mut libc::c_char,
-    pub pa_modification_date: *mut libc::c_char,
-    pub pa_read_date: *mut libc::c_char,
-    pub pa_size: size_t,
-    pub pa_parameter: *mut mailmime_parameter,
-}
+use crate::clist::*;
+use crate::mailimf_types::*;
+use crate::mailmime::*;
+use crate::mailmime_types::*;
+use crate::x::*;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct mailmime_single_fields {
@@ -539,43 +26,8 @@ pub struct mailmime_single_fields {
     pub fld_language: *mut mailmime_language,
     pub fld_location: *mut libc::c_char,
 }
-/*
- * libEtPan! -- a mail stuff library
- *
- * Copyright (C) 2001, 2005 - DINH Viet Hoa
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the libEtPan! project nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/*
- * $Id: mailmime_types_helper.h,v 1.17 2008/01/14 17:13:53 hoa Exp $
- */
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_transfer_encoding_get(
-    mut fields: *mut mailmime_fields,
-) -> libc::c_int {
+
+pub unsafe fn mailmime_transfer_encoding_get(mut fields: *mut mailmime_fields) -> libc::c_int {
     let mut cur: *mut clistiter = 0 as *mut clistiter;
     cur = (*(*fields).fld_list).first;
     while !cur.is_null() {
@@ -591,13 +43,13 @@ pub unsafe extern "C" fn mailmime_transfer_encoding_get(
         cur = if !cur.is_null() {
             (*cur).next
         } else {
-            0 as *mut clistcell_s
+            0 as *mut clistcell
         }
     }
     return MAILMIME_MECHANISM_8BIT as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_new_filename(
+
+pub unsafe fn mailmime_disposition_new_filename(
     mut type_0: libc::c_int,
     mut filename: *mut libc::c_char,
 ) -> *mut mailmime_disposition {
@@ -610,8 +62,8 @@ pub unsafe extern "C" fn mailmime_disposition_new_filename(
         -1i32 as size_t,
     );
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_disposition_new_with_data(
+
+pub unsafe fn mailmime_disposition_new_with_data(
     mut type_0: libc::c_int,
     mut filename: *mut libc::c_char,
     mut creation_date: *mut libc::c_char,
@@ -791,7 +243,7 @@ pub unsafe extern "C" fn mailmime_disposition_new_with_data(
             clist_foreach(
                 list,
                 ::std::mem::transmute::<
-                    Option<unsafe extern "C" fn(_: *mut mailmime_disposition_parm) -> ()>,
+                    Option<unsafe fn(_: *mut mailmime_disposition_parm) -> ()>,
                     clist_func,
                 >(Some(mailmime_disposition_parm_free)),
                 0 as *mut libc::c_void,
@@ -802,8 +254,8 @@ pub unsafe extern "C" fn mailmime_disposition_new_with_data(
     }
     return 0 as *mut mailmime_disposition;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_fields_new_empty() -> *mut mailmime_fields {
+
+pub unsafe fn mailmime_fields_new_empty() -> *mut mailmime_fields {
     let mut list: *mut clist = 0 as *mut clist;
     let mut fields: *mut mailmime_fields = 0 as *mut mailmime_fields;
     list = clist_new();
@@ -817,8 +269,8 @@ pub unsafe extern "C" fn mailmime_fields_new_empty() -> *mut mailmime_fields {
     }
     return 0 as *mut mailmime_fields;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_fields_add(
+
+pub unsafe fn mailmime_fields_add(
     mut fields: *mut mailmime_fields,
     mut field: *mut mailmime_field,
 ) -> libc::c_int {
@@ -833,8 +285,8 @@ pub unsafe extern "C" fn mailmime_fields_add(
     }
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_fields_new_with_data(
+
+pub unsafe fn mailmime_fields_new_with_data(
     mut encoding: *mut mailmime_mechanism,
     mut id: *mut libc::c_char,
     mut description: *mut libc::c_char,
@@ -1008,17 +460,16 @@ pub unsafe extern "C" fn mailmime_fields_new_with_data(
         }
         clist_foreach(
             (*fields).fld_list,
-            ::std::mem::transmute::<
-                Option<unsafe extern "C" fn(_: *mut mailmime_field) -> ()>,
-                clist_func,
-            >(Some(mailmime_field_detach)),
+            ::std::mem::transmute::<Option<unsafe fn(_: *mut mailmime_field) -> ()>, clist_func>(
+                Some(mailmime_field_detach),
+            ),
             0 as *mut libc::c_void,
         );
         mailmime_fields_free(fields);
     }
     return 0 as *mut mailmime_fields;
 }
-unsafe extern "C" fn mailmime_field_detach(mut field: *mut mailmime_field) {
+unsafe fn mailmime_field_detach(mut field: *mut mailmime_field) {
     match (*field).fld_type {
         1 => (*field).fld_data.fld_content = 0 as *mut mailmime_content,
         2 => (*field).fld_data.fld_encoding = 0 as *mut mailmime_mechanism,
@@ -1029,8 +480,8 @@ unsafe extern "C" fn mailmime_field_detach(mut field: *mut mailmime_field) {
         _ => {}
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_fields_new_with_version(
+
+pub unsafe fn mailmime_fields_new_with_version(
     mut encoding: *mut mailmime_mechanism,
     mut id: *mut libc::c_char,
     mut description: *mut libc::c_char,
@@ -1064,18 +515,17 @@ pub unsafe extern "C" fn mailmime_fields_new_with_version(
         }
         clist_foreach(
             (*fields).fld_list,
-            ::std::mem::transmute::<
-                Option<unsafe extern "C" fn(_: *mut mailmime_field) -> ()>,
-                clist_func,
-            >(Some(mailmime_field_detach)),
+            ::std::mem::transmute::<Option<unsafe fn(_: *mut mailmime_field) -> ()>, clist_func>(
+                Some(mailmime_field_detach),
+            ),
             0 as *mut libc::c_void,
         );
         mailmime_fields_free(fields);
     }
     return 0 as *mut mailmime_fields;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_get_content_message() -> *mut mailmime_content {
+
+pub unsafe fn mailmime_get_content_message() -> *mut mailmime_content {
     let mut list: *mut clist = 0 as *mut clist;
     let mut composite_type: *mut mailmime_composite_type = 0 as *mut mailmime_composite_type;
     let mut mime_type: *mut mailmime_type = 0 as *mut mailmime_type;
@@ -1114,8 +564,8 @@ pub unsafe extern "C" fn mailmime_get_content_message() -> *mut mailmime_content
     }
     return 0 as *mut mailmime_content;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_get_content_text() -> *mut mailmime_content {
+
+pub unsafe fn mailmime_get_content_text() -> *mut mailmime_content {
     let mut list: *mut clist = 0 as *mut clist;
     let mut discrete_type: *mut mailmime_discrete_type = 0 as *mut mailmime_discrete_type;
     let mut mime_type: *mut mailmime_type = 0 as *mut mailmime_type;
@@ -1155,8 +605,7 @@ pub unsafe extern "C" fn mailmime_get_content_text() -> *mut mailmime_content {
     return 0 as *mut mailmime_content;
 }
 /* struct mailmime_content * mailmime_get_content(char * mime_type); */
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_data_new_data(
+pub unsafe fn mailmime_data_new_data(
     mut encoding: libc::c_int,
     mut encoded: libc::c_int,
     mut data: *const libc::c_char,
@@ -1171,8 +620,8 @@ pub unsafe extern "C" fn mailmime_data_new_data(
         0 as *mut libc::c_char,
     );
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_data_new_file(
+
+pub unsafe fn mailmime_data_new_file(
     mut encoding: libc::c_int,
     mut encoded: libc::c_int,
     mut filename: *mut libc::c_char,
@@ -1186,8 +635,8 @@ pub unsafe extern "C" fn mailmime_data_new_file(
         filename,
     );
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_new_message_data(mut msg_mime: *mut mailmime) -> *mut mailmime {
+
+pub unsafe fn mailmime_new_message_data(mut msg_mime: *mut mailmime) -> *mut mailmime {
     let mut content: *mut mailmime_content = 0 as *mut mailmime_content;
     let mut build_info: *mut mailmime = 0 as *mut mailmime;
     let mut mime_fields: *mut mailmime_fields = 0 as *mut mailmime_fields;
@@ -1224,8 +673,8 @@ pub unsafe extern "C" fn mailmime_new_message_data(mut msg_mime: *mut mailmime) 
     }
     return 0 as *mut mailmime;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_new_empty(
+
+pub unsafe fn mailmime_new_empty(
     mut content: *mut mailmime_content,
     mut mime_fields: *mut mailmime_fields,
 ) -> *mut mailmime {
@@ -1387,15 +836,15 @@ pub unsafe extern "C" fn mailmime_new_empty(
     }
     return 0 as *mut mailmime;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_generate_boundary() -> *mut libc::c_char {
+
+pub unsafe fn mailmime_generate_boundary() -> *mut libc::c_char {
     let mut id: [libc::c_char; 512] = [0; 512];
     let mut now: time_t = 0;
     let mut name: [libc::c_char; 512] = [0; 512];
     let mut value: libc::c_long = 0;
     now = time(0 as *mut time_t);
     value = random();
-    gethostname(name.as_mut_ptr(), 512i32 as size_t);
+    libc::gethostname(name.as_mut_ptr(), 512);
     snprintf(
         id.as_mut_ptr(),
         512i32 as libc::c_ulong,
@@ -1406,8 +855,8 @@ pub unsafe extern "C" fn mailmime_generate_boundary() -> *mut libc::c_char {
     );
     return strdup(id.as_mut_ptr());
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_new_with_content(
+
+pub unsafe fn mailmime_new_with_content(
     mut content_type: *const libc::c_char,
     mut mime_fields: *mut mailmime_fields,
     mut result: *mut *mut mailmime,
@@ -1438,8 +887,8 @@ pub unsafe extern "C" fn mailmime_new_with_content(
     }
     return res;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_set_preamble_file(
+
+pub unsafe fn mailmime_set_preamble_file(
     mut build_info: *mut mailmime,
     mut filename: *mut libc::c_char,
 ) -> libc::c_int {
@@ -1458,8 +907,8 @@ pub unsafe extern "C" fn mailmime_set_preamble_file(
     (*build_info).mm_data.mm_multipart.mm_preamble = data;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_set_epilogue_file(
+
+pub unsafe fn mailmime_set_epilogue_file(
     mut build_info: *mut mailmime,
     mut filename: *mut libc::c_char,
 ) -> libc::c_int {
@@ -1478,8 +927,8 @@ pub unsafe extern "C" fn mailmime_set_epilogue_file(
     (*build_info).mm_data.mm_multipart.mm_epilogue = data;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_set_preamble_text(
+
+pub unsafe fn mailmime_set_preamble_text(
     mut build_info: *mut mailmime,
     mut data_str: *mut libc::c_char,
     mut length: size_t,
@@ -1499,8 +948,8 @@ pub unsafe extern "C" fn mailmime_set_preamble_text(
     (*build_info).mm_data.mm_multipart.mm_preamble = data;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_set_epilogue_text(
+
+pub unsafe fn mailmime_set_epilogue_text(
     mut build_info: *mut mailmime,
     mut data_str: *mut libc::c_char,
     mut length: size_t,
@@ -1520,8 +969,8 @@ pub unsafe extern "C" fn mailmime_set_epilogue_text(
     (*build_info).mm_data.mm_multipart.mm_epilogue = data;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_set_body_file(
+
+pub unsafe fn mailmime_set_body_file(
     mut build_info: *mut mailmime,
     mut filename: *mut libc::c_char,
 ) -> libc::c_int {
@@ -1542,8 +991,8 @@ pub unsafe extern "C" fn mailmime_set_body_file(
     (*build_info).mm_data.mm_single = data;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_set_body_text(
+
+pub unsafe fn mailmime_set_body_text(
     mut build_info: *mut mailmime,
     mut data_str: *mut libc::c_char,
     mut length: size_t,
@@ -1565,8 +1014,8 @@ pub unsafe extern "C" fn mailmime_set_body_text(
     (*build_info).mm_data.mm_single = data;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_add_part(
+
+pub unsafe fn mailmime_add_part(
     mut build_info: *mut mailmime,
     mut part: *mut mailmime,
 ) -> libc::c_int {
@@ -1592,8 +1041,8 @@ pub unsafe extern "C" fn mailmime_add_part(
     }
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_remove_part(mut mime: *mut mailmime) {
+
+pub unsafe fn mailmime_remove_part(mut mime: *mut mailmime) {
     let mut parent: *mut mailmime = 0 as *mut mailmime;
     parent = (*mime).mm_parent;
     if parent.is_null() {
@@ -1614,15 +1063,15 @@ pub unsafe extern "C" fn mailmime_remove_part(mut mime: *mut mailmime) {
         _ => {}
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_set_imf_fields(
+
+pub unsafe fn mailmime_set_imf_fields(
     mut build_info: *mut mailmime,
     mut mm_fields: *mut mailimf_fields,
 ) {
     (*build_info).mm_data.mm_message.mm_fields = mm_fields;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_single_fields_init(
+
+pub unsafe fn mailmime_single_fields_init(
     mut single_fields: *mut mailmime_single_fields,
     mut fld_fields: *mut mailmime_fields,
     mut fld_content: *mut mailmime_content,
@@ -1668,11 +1117,11 @@ pub unsafe extern "C" fn mailmime_single_fields_init(
         cur = if !cur.is_null() {
             (*cur).next
         } else {
-            0 as *mut clistcell_s
+            0 as *mut clistcell
         }
     }
 }
-unsafe extern "C" fn mailmime_disposition_single_fields_init(
+unsafe fn mailmime_disposition_single_fields_init(
     mut single_fields: *mut mailmime_single_fields,
     mut fld_disposition: *mut mailmime_disposition,
 ) {
@@ -1700,11 +1149,11 @@ unsafe extern "C" fn mailmime_disposition_single_fields_init(
         cur = if !cur.is_null() {
             (*cur).next
         } else {
-            0 as *mut clistcell_s
+            0 as *mut clistcell
         }
     }
 }
-unsafe extern "C" fn mailmime_content_single_fields_init(
+unsafe fn mailmime_content_single_fields_init(
     mut single_fields: *mut mailmime_single_fields,
     mut fld_content: *mut mailmime_content,
 ) {
@@ -1742,12 +1191,12 @@ unsafe extern "C" fn mailmime_content_single_fields_init(
         cur = if !cur.is_null() {
             (*cur).next
         } else {
-            0 as *mut clistcell_s
+            0 as *mut clistcell
         }
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_single_fields_new(
+
+pub unsafe fn mailmime_single_fields_new(
     mut fld_fields: *mut mailmime_fields,
     mut fld_content: *mut mailmime_content,
 ) -> *mut mailmime_single_fields {
@@ -1761,14 +1210,12 @@ pub unsafe extern "C" fn mailmime_single_fields_new(
         return single_fields;
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_single_fields_free(
-    mut single_fields: *mut mailmime_single_fields,
-) {
+
+pub unsafe fn mailmime_single_fields_free(mut single_fields: *mut mailmime_single_fields) {
     free(single_fields as *mut libc::c_void);
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_smart_add_part(
+
+pub unsafe fn mailmime_smart_add_part(
     mut mime: *mut mailmime,
     mut mime_sub: *mut mailmime,
 ) -> libc::c_int {
@@ -1833,8 +1280,8 @@ pub unsafe extern "C" fn mailmime_smart_add_part(
     }
     return res;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_multiple_new(mut type_0: *const libc::c_char) -> *mut mailmime {
+
+pub unsafe fn mailmime_multiple_new(mut type_0: *const libc::c_char) -> *mut mailmime {
     let mut mime_fields: *mut mailmime_fields = 0 as *mut mailmime_fields;
     let mut content: *mut mailmime_content = 0 as *mut mailmime_content;
     let mut mp: *mut mailmime = 0 as *mut mailmime;
@@ -1853,10 +1300,8 @@ pub unsafe extern "C" fn mailmime_multiple_new(mut type_0: *const libc::c_char) 
     }
     return 0 as *mut mailmime;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_content_new_with_str(
-    mut str: *const libc::c_char,
-) -> *mut mailmime_content {
+
+pub unsafe fn mailmime_content_new_with_str(mut str: *const libc::c_char) -> *mut mailmime_content {
     let mut r: libc::c_int = 0;
     let mut cur_token: size_t = 0;
     let mut content: *mut mailmime_content = 0 as *mut mailmime_content;
@@ -1867,8 +1312,8 @@ pub unsafe extern "C" fn mailmime_content_new_with_str(
     }
     return content;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_smart_remove_part(mut mime: *mut mailmime) -> libc::c_int {
+
+pub unsafe fn mailmime_smart_remove_part(mut mime: *mut mailmime) -> libc::c_int {
     let mut parent: *mut mailmime = 0 as *mut mailmime;
     let mut res: libc::c_int = 0;
     parent = (*mime).mm_parent;
@@ -1907,10 +1352,8 @@ pub unsafe extern "C" fn mailmime_smart_remove_part(mut mime: *mut mailmime) -> 
     }
     return res;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_fields_new_encoding(
-    mut type_0: libc::c_int,
-) -> *mut mailmime_fields {
+
+pub unsafe fn mailmime_fields_new_encoding(mut type_0: libc::c_int) -> *mut mailmime_fields {
     let mut encoding: *mut mailmime_mechanism = 0 as *mut mailmime_mechanism;
     let mut mime_fields: *mut mailmime_fields = 0 as *mut mailmime_fields;
     encoding = mailmime_mechanism_new(type_0, 0 as *mut libc::c_char);
@@ -1930,8 +1373,8 @@ pub unsafe extern "C" fn mailmime_fields_new_encoding(
     }
     return 0 as *mut mailmime_fields;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_fields_new_filename(
+
+pub unsafe fn mailmime_fields_new_filename(
     mut dsp_type: libc::c_int,
     mut filename: *mut libc::c_char,
     mut encoding_type: libc::c_int,
@@ -1967,8 +1410,8 @@ pub unsafe extern "C" fn mailmime_fields_new_filename(
     }
     return 0 as *mut mailmime_fields;
 }
-#[no_mangle]
-pub unsafe extern "C" fn mailmime_param_new_with_data(
+
+pub unsafe fn mailmime_param_new_with_data(
     mut name: *mut libc::c_char,
     mut value: *mut libc::c_char,
 ) -> *mut mailmime_parameter {
