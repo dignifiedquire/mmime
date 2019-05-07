@@ -34,7 +34,6 @@ extern "C" {
         __outbuf: *mut *mut libc::c_char,
         __outbytesleft: *mut size_t,
     ) -> size_t;
-    pub fn __error() -> *mut libc::c_int;
     pub fn iconv_open(__tocode: *const libc::c_char, __fromcode: *const libc::c_char) -> iconv_t;
     pub fn getpid() -> pid_t;
     pub fn random() -> libc::c_long;

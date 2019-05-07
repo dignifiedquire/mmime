@@ -141,7 +141,8 @@ unsafe fn mail_iconv(
         if ret1 != -1i32 as size_t {
             ret = (ret as libc::size_t).wrapping_add(ret1) as size_t as size_t
         }
-        if 0 != ibl && 0 != obl && *__error() == 92i32 {
+        let err = std::io::Error::last_os_error().raw_os_error();
+        if 0 != ibl && 0 != obl && err == Some(92) {
             if !inrepls.is_null() {
                 /* Try replacing the input */
                 let mut t: *mut *mut libc::c_char = 0 as *mut *mut libc::c_char;
