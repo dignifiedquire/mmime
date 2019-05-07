@@ -14,19 +14,21 @@
 
 mod x;
 
-mod carray;
-mod charconv;
-mod chash;
-mod clist;
-mod mailimf;
-mod mailimf_types;
-mod mailmime;
-mod mailmime_content;
-mod mailmime_decode;
-mod mailmime_disposition;
-mod mailmime_types;
-mod mailmime_types_helper;
-mod mmapstring;
+pub mod carray;
+pub mod charconv;
+pub mod chash;
+pub mod clist;
+pub mod mailimf;
+pub mod mailimf_types;
+pub mod mailimf_write_generic;
+pub mod mailmime;
+pub mod mailmime_content;
+pub mod mailmime_decode;
+pub mod mailmime_disposition;
+pub mod mailmime_types;
+pub mod mailmime_types_helper;
+pub mod mailmime_write_generic;
+pub mod mmapstring;
 
 pub use self::carray::*;
 pub use self::charconv::*;
@@ -34,13 +36,16 @@ pub use self::chash::*;
 pub use self::clist::*;
 pub use self::mailimf::*;
 pub use self::mailimf_types::*;
+pub use self::mailimf_write_generic::*;
 pub use self::mailmime::*;
 pub use self::mailmime_content::*;
 pub use self::mailmime_decode::*;
 pub use self::mailmime_disposition::*;
 pub use self::mailmime_types::*;
 pub use self::mailmime_types_helper::*;
+pub use self::mailmime_write_generic::*;
 pub use self::mmapstring::*;
+pub use self::x::mailprivacy_prepare_mime;
 
 #[cfg(test)]
 mod tests {
@@ -48,7 +53,6 @@ mod tests {
     use crate::mailmime_types::{mailmime, mailmime_content, mailmime_disposition};
 
     extern "C" {
-        #[no_mangle]
         fn printf(_: *const libc::c_char, _: ...) -> libc::c_int;
     }
 
@@ -81,7 +85,7 @@ mod tests {
             let mut mime = std::ptr::null_mut();
             let res = crate::mailmime_content::mailmime_parse(
                 c_data.as_ptr(),
-                data.len() as u64,
+                data.len() as usize,
                 &mut current_index,
                 &mut mime,
             );

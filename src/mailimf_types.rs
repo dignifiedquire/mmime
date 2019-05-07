@@ -468,7 +468,7 @@ pub unsafe fn mailimf_date_time_new(
     mut dt_zone: libc::c_int,
 ) -> *mut mailimf_date_time {
     let mut date_time: *mut mailimf_date_time = 0 as *mut mailimf_date_time;
-    date_time = malloc(::std::mem::size_of::<mailimf_date_time>() as libc::c_ulong)
+    date_time = malloc(::std::mem::size_of::<mailimf_date_time>() as libc::size_t)
         as *mut mailimf_date_time;
     if date_time.is_null() {
         return 0 as *mut mailimf_date_time;
@@ -494,7 +494,7 @@ pub unsafe fn mailimf_address_new(
 ) -> *mut mailimf_address {
     let mut address: *mut mailimf_address = 0 as *mut mailimf_address;
     address =
-        malloc(::std::mem::size_of::<mailimf_address>() as libc::c_ulong) as *mut mailimf_address;
+        malloc(::std::mem::size_of::<mailimf_address>() as libc::size_t) as *mut mailimf_address;
     if address.is_null() {
         return 0 as *mut mailimf_address;
     }
@@ -565,7 +565,7 @@ pub unsafe fn mailimf_mailbox_new(
     mut mb_addr_spec: *mut libc::c_char,
 ) -> *mut mailimf_mailbox {
     let mut mb: *mut mailimf_mailbox = 0 as *mut mailimf_mailbox;
-    mb = malloc(::std::mem::size_of::<mailimf_mailbox>() as libc::c_ulong) as *mut mailimf_mailbox;
+    mb = malloc(::std::mem::size_of::<mailimf_mailbox>() as libc::size_t) as *mut mailimf_mailbox;
     if mb.is_null() {
         return 0 as *mut mailimf_mailbox;
     }
@@ -579,7 +579,7 @@ pub unsafe fn mailimf_group_new(
     mut grp_mb_list: *mut mailimf_mailbox_list,
 ) -> *mut mailimf_group {
     let mut group: *mut mailimf_group = 0 as *mut mailimf_group;
-    group = malloc(::std::mem::size_of::<mailimf_group>() as libc::c_ulong) as *mut mailimf_group;
+    group = malloc(::std::mem::size_of::<mailimf_group>() as libc::size_t) as *mut mailimf_group;
     if group.is_null() {
         return 0 as *mut mailimf_group;
     }
@@ -590,7 +590,7 @@ pub unsafe fn mailimf_group_new(
 #[no_mangle]
 pub unsafe fn mailimf_mailbox_list_new(mut mb_list: *mut clist) -> *mut mailimf_mailbox_list {
     let mut mbl: *mut mailimf_mailbox_list = 0 as *mut mailimf_mailbox_list;
-    mbl = malloc(::std::mem::size_of::<mailimf_mailbox_list>() as libc::c_ulong)
+    mbl = malloc(::std::mem::size_of::<mailimf_mailbox_list>() as libc::size_t)
         as *mut mailimf_mailbox_list;
     if mbl.is_null() {
         return 0 as *mut mailimf_mailbox_list;
@@ -601,7 +601,7 @@ pub unsafe fn mailimf_mailbox_list_new(mut mb_list: *mut clist) -> *mut mailimf_
 #[no_mangle]
 pub unsafe fn mailimf_address_list_new(mut ad_list: *mut clist) -> *mut mailimf_address_list {
     let mut addr_list: *mut mailimf_address_list = 0 as *mut mailimf_address_list;
-    addr_list = malloc(::std::mem::size_of::<mailimf_address_list>() as libc::c_ulong)
+    addr_list = malloc(::std::mem::size_of::<mailimf_address_list>() as libc::size_t)
         as *mut mailimf_address_list;
     if addr_list.is_null() {
         return 0 as *mut mailimf_address_list;
@@ -627,7 +627,7 @@ pub unsafe fn mailimf_body_new(
     mut bd_size: size_t,
 ) -> *mut mailimf_body {
     let mut body: *mut mailimf_body = 0 as *mut mailimf_body;
-    body = malloc(::std::mem::size_of::<mailimf_body>() as libc::c_ulong) as *mut mailimf_body;
+    body = malloc(::std::mem::size_of::<mailimf_body>() as libc::size_t) as *mut mailimf_body;
     if body.is_null() {
         return 0 as *mut mailimf_body;
     }
@@ -646,7 +646,7 @@ pub unsafe fn mailimf_message_new(
 ) -> *mut mailimf_message {
     let mut message: *mut mailimf_message = 0 as *mut mailimf_message;
     message =
-        malloc(::std::mem::size_of::<mailimf_message>() as libc::c_ulong) as *mut mailimf_message;
+        malloc(::std::mem::size_of::<mailimf_message>() as libc::size_t) as *mut mailimf_message;
     if message.is_null() {
         return 0 as *mut mailimf_message;
     }
@@ -882,8 +882,7 @@ pub unsafe fn mailimf_path_free(mut path: *mut mailimf_path) {
 #[no_mangle]
 pub unsafe fn mailimf_fields_new(mut fld_list: *mut clist) -> *mut mailimf_fields {
     let mut fields: *mut mailimf_fields = 0 as *mut mailimf_fields;
-    fields =
-        malloc(::std::mem::size_of::<mailimf_fields>() as libc::c_ulong) as *mut mailimf_fields;
+    fields = malloc(::std::mem::size_of::<mailimf_fields>() as libc::size_t) as *mut mailimf_fields;
     if fields.is_null() {
         return 0 as *mut mailimf_fields;
     }
@@ -917,7 +916,7 @@ pub unsafe fn mailimf_field_new(
     mut fld_optional_field: *mut mailimf_optional_field,
 ) -> *mut mailimf_field {
     let mut field: *mut mailimf_field = 0 as *mut mailimf_field;
-    field = malloc(::std::mem::size_of::<mailimf_field>() as libc::c_ulong) as *mut mailimf_field;
+    field = malloc(::std::mem::size_of::<mailimf_field>() as libc::size_t) as *mut mailimf_field;
     if field.is_null() {
         return 0 as *mut mailimf_field;
     }
@@ -954,7 +953,7 @@ pub unsafe fn mailimf_orig_date_new(
     mut dt_date_time: *mut mailimf_date_time,
 ) -> *mut mailimf_orig_date {
     let mut orig_date: *mut mailimf_orig_date = 0 as *mut mailimf_orig_date;
-    orig_date = malloc(::std::mem::size_of::<mailimf_orig_date>() as libc::c_ulong)
+    orig_date = malloc(::std::mem::size_of::<mailimf_orig_date>() as libc::size_t)
         as *mut mailimf_orig_date;
     if orig_date.is_null() {
         return 0 as *mut mailimf_orig_date;
@@ -965,7 +964,7 @@ pub unsafe fn mailimf_orig_date_new(
 #[no_mangle]
 pub unsafe fn mailimf_from_new(mut frm_mb_list: *mut mailimf_mailbox_list) -> *mut mailimf_from {
     let mut from: *mut mailimf_from = 0 as *mut mailimf_from;
-    from = malloc(::std::mem::size_of::<mailimf_from>() as libc::c_ulong) as *mut mailimf_from;
+    from = malloc(::std::mem::size_of::<mailimf_from>() as libc::size_t) as *mut mailimf_from;
     if from.is_null() {
         return 0 as *mut mailimf_from;
     }
@@ -975,8 +974,7 @@ pub unsafe fn mailimf_from_new(mut frm_mb_list: *mut mailimf_mailbox_list) -> *m
 #[no_mangle]
 pub unsafe fn mailimf_sender_new(mut snd_mb: *mut mailimf_mailbox) -> *mut mailimf_sender {
     let mut sender: *mut mailimf_sender = 0 as *mut mailimf_sender;
-    sender =
-        malloc(::std::mem::size_of::<mailimf_sender>() as libc::c_ulong) as *mut mailimf_sender;
+    sender = malloc(::std::mem::size_of::<mailimf_sender>() as libc::size_t) as *mut mailimf_sender;
     if sender.is_null() {
         return 0 as *mut mailimf_sender;
     }
@@ -989,7 +987,7 @@ pub unsafe fn mailimf_reply_to_new(
 ) -> *mut mailimf_reply_to {
     let mut reply_to: *mut mailimf_reply_to = 0 as *mut mailimf_reply_to;
     reply_to =
-        malloc(::std::mem::size_of::<mailimf_reply_to>() as libc::c_ulong) as *mut mailimf_reply_to;
+        malloc(::std::mem::size_of::<mailimf_reply_to>() as libc::size_t) as *mut mailimf_reply_to;
     if reply_to.is_null() {
         return 0 as *mut mailimf_reply_to;
     }
@@ -999,7 +997,7 @@ pub unsafe fn mailimf_reply_to_new(
 #[no_mangle]
 pub unsafe fn mailimf_to_new(mut to_addr_list: *mut mailimf_address_list) -> *mut mailimf_to {
     let mut to: *mut mailimf_to = 0 as *mut mailimf_to;
-    to = malloc(::std::mem::size_of::<mailimf_to>() as libc::c_ulong) as *mut mailimf_to;
+    to = malloc(::std::mem::size_of::<mailimf_to>() as libc::size_t) as *mut mailimf_to;
     if to.is_null() {
         return 0 as *mut mailimf_to;
     }
@@ -1009,7 +1007,7 @@ pub unsafe fn mailimf_to_new(mut to_addr_list: *mut mailimf_address_list) -> *mu
 #[no_mangle]
 pub unsafe fn mailimf_cc_new(mut cc_addr_list: *mut mailimf_address_list) -> *mut mailimf_cc {
     let mut cc: *mut mailimf_cc = 0 as *mut mailimf_cc;
-    cc = malloc(::std::mem::size_of::<mailimf_cc>() as libc::c_ulong) as *mut mailimf_cc;
+    cc = malloc(::std::mem::size_of::<mailimf_cc>() as libc::size_t) as *mut mailimf_cc;
     if cc.is_null() {
         return 0 as *mut mailimf_cc;
     }
@@ -1019,7 +1017,7 @@ pub unsafe fn mailimf_cc_new(mut cc_addr_list: *mut mailimf_address_list) -> *mu
 #[no_mangle]
 pub unsafe fn mailimf_bcc_new(mut bcc_addr_list: *mut mailimf_address_list) -> *mut mailimf_bcc {
     let mut bcc: *mut mailimf_bcc = 0 as *mut mailimf_bcc;
-    bcc = malloc(::std::mem::size_of::<mailimf_bcc>() as libc::c_ulong) as *mut mailimf_bcc;
+    bcc = malloc(::std::mem::size_of::<mailimf_bcc>() as libc::size_t) as *mut mailimf_bcc;
     if bcc.is_null() {
         return 0 as *mut mailimf_bcc;
     }
@@ -1029,7 +1027,7 @@ pub unsafe fn mailimf_bcc_new(mut bcc_addr_list: *mut mailimf_address_list) -> *
 #[no_mangle]
 pub unsafe fn mailimf_message_id_new(mut mid_value: *mut libc::c_char) -> *mut mailimf_message_id {
     let mut message_id: *mut mailimf_message_id = 0 as *mut mailimf_message_id;
-    message_id = malloc(::std::mem::size_of::<mailimf_message_id>() as libc::c_ulong)
+    message_id = malloc(::std::mem::size_of::<mailimf_message_id>() as libc::size_t)
         as *mut mailimf_message_id;
     if message_id.is_null() {
         return 0 as *mut mailimf_message_id;
@@ -1040,7 +1038,7 @@ pub unsafe fn mailimf_message_id_new(mut mid_value: *mut libc::c_char) -> *mut m
 #[no_mangle]
 pub unsafe fn mailimf_in_reply_to_new(mut mid_list: *mut clist) -> *mut mailimf_in_reply_to {
     let mut in_reply_to: *mut mailimf_in_reply_to = 0 as *mut mailimf_in_reply_to;
-    in_reply_to = malloc(::std::mem::size_of::<mailimf_in_reply_to>() as libc::c_ulong)
+    in_reply_to = malloc(::std::mem::size_of::<mailimf_in_reply_to>() as libc::size_t)
         as *mut mailimf_in_reply_to;
     if in_reply_to.is_null() {
         return 0 as *mut mailimf_in_reply_to;
@@ -1052,7 +1050,7 @@ pub unsafe fn mailimf_in_reply_to_new(mut mid_list: *mut clist) -> *mut mailimf_
 #[no_mangle]
 pub unsafe fn mailimf_references_new(mut mid_list: *mut clist) -> *mut mailimf_references {
     let mut ref_0: *mut mailimf_references = 0 as *mut mailimf_references;
-    ref_0 = malloc(::std::mem::size_of::<mailimf_references>() as libc::c_ulong)
+    ref_0 = malloc(::std::mem::size_of::<mailimf_references>() as libc::size_t)
         as *mut mailimf_references;
     if ref_0.is_null() {
         return 0 as *mut mailimf_references;
@@ -1064,7 +1062,7 @@ pub unsafe fn mailimf_references_new(mut mid_list: *mut clist) -> *mut mailimf_r
 pub unsafe fn mailimf_subject_new(mut sbj_value: *mut libc::c_char) -> *mut mailimf_subject {
     let mut subject: *mut mailimf_subject = 0 as *mut mailimf_subject;
     subject =
-        malloc(::std::mem::size_of::<mailimf_subject>() as libc::c_ulong) as *mut mailimf_subject;
+        malloc(::std::mem::size_of::<mailimf_subject>() as libc::size_t) as *mut mailimf_subject;
     if subject.is_null() {
         return 0 as *mut mailimf_subject;
     }
@@ -1075,7 +1073,7 @@ pub unsafe fn mailimf_subject_new(mut sbj_value: *mut libc::c_char) -> *mut mail
 pub unsafe fn mailimf_comments_new(mut cm_value: *mut libc::c_char) -> *mut mailimf_comments {
     let mut comments: *mut mailimf_comments = 0 as *mut mailimf_comments;
     comments =
-        malloc(::std::mem::size_of::<mailimf_comments>() as libc::c_ulong) as *mut mailimf_comments;
+        malloc(::std::mem::size_of::<mailimf_comments>() as libc::size_t) as *mut mailimf_comments;
     if comments.is_null() {
         return 0 as *mut mailimf_comments;
     }
@@ -1086,7 +1084,7 @@ pub unsafe fn mailimf_comments_new(mut cm_value: *mut libc::c_char) -> *mut mail
 pub unsafe fn mailimf_keywords_new(mut kw_list: *mut clist) -> *mut mailimf_keywords {
     let mut keywords: *mut mailimf_keywords = 0 as *mut mailimf_keywords;
     keywords =
-        malloc(::std::mem::size_of::<mailimf_keywords>() as libc::c_ulong) as *mut mailimf_keywords;
+        malloc(::std::mem::size_of::<mailimf_keywords>() as libc::size_t) as *mut mailimf_keywords;
     if keywords.is_null() {
         return 0 as *mut mailimf_keywords;
     }
@@ -1097,7 +1095,7 @@ pub unsafe fn mailimf_keywords_new(mut kw_list: *mut clist) -> *mut mailimf_keyw
 pub unsafe fn mailimf_return_new(mut ret_path: *mut mailimf_path) -> *mut mailimf_return {
     let mut return_path: *mut mailimf_return = 0 as *mut mailimf_return;
     return_path =
-        malloc(::std::mem::size_of::<mailimf_return>() as libc::c_ulong) as *mut mailimf_return;
+        malloc(::std::mem::size_of::<mailimf_return>() as libc::size_t) as *mut mailimf_return;
     if return_path.is_null() {
         return 0 as *mut mailimf_return;
     }
@@ -1107,7 +1105,7 @@ pub unsafe fn mailimf_return_new(mut ret_path: *mut mailimf_path) -> *mut mailim
 #[no_mangle]
 pub unsafe fn mailimf_path_new(mut pt_addr_spec: *mut libc::c_char) -> *mut mailimf_path {
     let mut path: *mut mailimf_path = 0 as *mut mailimf_path;
-    path = malloc(::std::mem::size_of::<mailimf_path>() as libc::c_ulong) as *mut mailimf_path;
+    path = malloc(::std::mem::size_of::<mailimf_path>() as libc::size_t) as *mut mailimf_path;
     if path.is_null() {
         return 0 as *mut mailimf_path;
     }
@@ -1120,7 +1118,7 @@ pub unsafe fn mailimf_optional_field_new(
     mut fld_value: *mut libc::c_char,
 ) -> *mut mailimf_optional_field {
     let mut opt_field: *mut mailimf_optional_field = 0 as *mut mailimf_optional_field;
-    opt_field = malloc(::std::mem::size_of::<mailimf_optional_field>() as libc::c_ulong)
+    opt_field = malloc(::std::mem::size_of::<mailimf_optional_field>() as libc::size_t)
         as *mut mailimf_optional_field;
     if opt_field.is_null() {
         return 0 as *mut mailimf_optional_field;

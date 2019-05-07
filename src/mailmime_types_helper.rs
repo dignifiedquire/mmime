@@ -847,7 +847,7 @@ pub unsafe fn mailmime_generate_boundary() -> *mut libc::c_char {
     libc::gethostname(name.as_mut_ptr(), 512);
     snprintf(
         id.as_mut_ptr(),
-        512i32 as libc::c_ulong,
+        512i32 as libc::size_t,
         b"%llx_%lx_%x\x00" as *const u8 as *const libc::c_char,
         now as libc::c_longlong,
         value,
@@ -1080,7 +1080,7 @@ pub unsafe fn mailmime_single_fields_init(
     memset(
         single_fields as *mut libc::c_void,
         0i32,
-        ::std::mem::size_of::<mailmime_single_fields>() as libc::c_ulong,
+        ::std::mem::size_of::<mailmime_single_fields>() as libc::size_t,
     );
     if !fld_content.is_null() {
         mailmime_content_single_fields_init(single_fields, fld_content);
@@ -1201,7 +1201,7 @@ pub unsafe fn mailmime_single_fields_new(
     mut fld_content: *mut mailmime_content,
 ) -> *mut mailmime_single_fields {
     let mut single_fields: *mut mailmime_single_fields = 0 as *mut mailmime_single_fields;
-    single_fields = malloc(::std::mem::size_of::<mailmime_single_fields>() as libc::c_ulong)
+    single_fields = malloc(::std::mem::size_of::<mailmime_single_fields>() as libc::size_t)
         as *mut mailmime_single_fields;
     if single_fields.is_null() {
         return 0 as *mut mailmime_single_fields;

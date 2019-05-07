@@ -1037,7 +1037,7 @@ unsafe fn mailimf_quoted_pair_parse(
 ) -> libc::c_int {
     let mut cur_token: size_t = 0;
     cur_token = *indx;
-    if cur_token.wrapping_add(1i32 as libc::c_ulong) >= length {
+    if cur_token.wrapping_add(1i32 as libc::size_t) >= length {
         return MAILIMF_ERROR_PARSE as libc::c_int;
     }
     if *message.offset(cur_token as isize) as libc::c_int != '\\' as i32 {
@@ -1178,7 +1178,7 @@ unsafe fn mailimf_unstructured_parse(
     str = malloc(
         terminal
             .wrapping_sub(begin)
-            .wrapping_add(1i32 as libc::c_ulong),
+            .wrapping_add(1i32 as libc::size_t),
     ) as *mut libc::c_char;
     if str.is_null() {
         return MAILIMF_ERROR_MEMORY as libc::c_int;
@@ -1247,7 +1247,7 @@ unsafe fn mailimf_field_name_parse(
     }
     field_name = malloc(
         end.wrapping_sub(cur_token)
-            .wrapping_add(1i32 as libc::c_ulong),
+            .wrapping_add(1i32 as libc::size_t),
     ) as *mut libc::c_char;
     if field_name.is_null() {
         return MAILIMF_ERROR_MEMORY as libc::c_int;
@@ -1461,7 +1461,7 @@ unsafe fn mailimf_addr_spec_msg_id_parse(
             } else {
                 addr_spec = malloc(
                     end.wrapping_sub(cur_token)
-                        .wrapping_add(1i32 as libc::c_ulong),
+                        .wrapping_add(1i32 as libc::size_t),
                 ) as *mut libc::c_char;
                 if addr_spec.is_null() {
                     res = MAILIMF_ERROR_MEMORY as libc::c_int
@@ -1508,13 +1508,13 @@ pub unsafe fn mailimf_token_case_insensitive_len_parse(
     cur_token = *indx;
     if cur_token
         .wrapping_add(token_length)
-        .wrapping_sub(1i32 as libc::c_ulong)
+        .wrapping_sub(1i32 as libc::size_t)
         >= length
     {
         return MAILIMF_ERROR_PARSE as libc::c_int;
     }
     if strncasecmp(message.offset(cur_token as isize), token, token_length) == 0i32 {
-        cur_token = (cur_token as libc::c_ulong).wrapping_add(token_length) as size_t as size_t;
+        cur_token = (cur_token as libc::size_t).wrapping_add(token_length) as size_t as size_t;
         *indx = cur_token;
         return MAILIMF_NO_ERROR as libc::c_int;
     } else {
@@ -1812,7 +1812,7 @@ unsafe fn mailimf_addr_spec_parse(
             } else {
                 addr_spec = malloc(
                     end.wrapping_sub(cur_token)
-                        .wrapping_add(1i32 as libc::c_ulong),
+                        .wrapping_add(1i32 as libc::size_t),
                 ) as *mut libc::c_char;
                 if addr_spec.is_null() {
                     res = MAILIMF_ERROR_MEMORY as libc::c_int
@@ -2226,7 +2226,7 @@ unsafe fn mailimf_fws_atom_for_word_parse(
             atom = malloc(
                 cur_token
                     .wrapping_sub(end)
-                    .wrapping_add(1i32 as libc::c_ulong),
+                    .wrapping_add(1i32 as libc::size_t),
             ) as *mut libc::c_char;
             if atom.is_null() {
                 res = MAILIMF_ERROR_MEMORY as libc::c_int
@@ -2278,7 +2278,7 @@ pub unsafe fn mailimf_fws_atom_parse(
             } else {
                 atom = malloc(
                     end.wrapping_sub(cur_token)
-                        .wrapping_add(1i32 as libc::c_ulong),
+                        .wrapping_add(1i32 as libc::size_t),
                 ) as *mut libc::c_char;
                 if atom.is_null() {
                     res = MAILIMF_ERROR_MEMORY as libc::c_int
@@ -2994,45 +2994,44 @@ unsafe fn mailimf_zone_parse(
     let mut r: libc::c_int = 0;
     let mut value: uint32_t = 0;
     cur_token = *indx;
-    if cur_token.wrapping_add(1i32 as libc::c_ulong) < length {
+    if cur_token.wrapping_add(1i32 as libc::size_t) < length {
         if *message.offset(cur_token as isize) as libc::c_int == 'U' as i32
-            && *message.offset(cur_token.wrapping_add(1i32 as libc::c_ulong) as isize)
-                as libc::c_int
+            && *message.offset(cur_token.wrapping_add(1i32 as libc::size_t) as isize) as libc::c_int
                 == 'T' as i32
         {
             *result = 1i32;
-            *indx = cur_token.wrapping_add(2i32 as libc::c_ulong);
+            *indx = cur_token.wrapping_add(2i32 as libc::size_t);
             return MAILIMF_NO_ERROR as libc::c_int;
         }
     }
     zone = 0i32;
-    if cur_token.wrapping_add(2i32 as libc::c_ulong) < length {
+    if cur_token.wrapping_add(2i32 as libc::size_t) < length {
         let mut state: libc::c_int = 0;
         state = STATE_ZONE_1 as libc::c_int;
         while state <= 2i32 {
             match state {
                 0 => match *message.offset(cur_token as isize) as libc::c_int {
                     71 => {
-                        if *message.offset(cur_token.wrapping_add(1i32 as libc::c_ulong) as isize)
+                        if *message.offset(cur_token.wrapping_add(1i32 as libc::size_t) as isize)
                             as libc::c_int
                             == 'M' as i32
                             && *message
-                                .offset(cur_token.wrapping_add(2i32 as libc::c_ulong) as isize)
+                                .offset(cur_token.wrapping_add(2i32 as libc::size_t) as isize)
                                 as libc::c_int
                                 == 'T' as i32
                         {
-                            if cur_token.wrapping_add(3i32 as libc::c_ulong) < length
+                            if cur_token.wrapping_add(3i32 as libc::size_t) < length
                                 && (*message
-                                    .offset(cur_token.wrapping_add(3i32 as libc::c_ulong) as isize)
+                                    .offset(cur_token.wrapping_add(3i32 as libc::size_t) as isize)
                                     as libc::c_int
                                     == '+' as i32
                                     || *message.offset(
-                                        cur_token.wrapping_add(3i32 as libc::c_ulong) as isize,
+                                        cur_token.wrapping_add(3i32 as libc::size_t) as isize
                                     ) as libc::c_int
                                         == '-' as i32)
                             {
-                                cur_token = (cur_token as libc::c_ulong)
-                                    .wrapping_add(3i32 as libc::c_ulong)
+                                cur_token = (cur_token as libc::size_t)
+                                    .wrapping_add(3i32 as libc::size_t)
                                     as size_t as size_t;
                                 state = STATE_ZONE_CONT as libc::c_int
                             } else {
@@ -3062,7 +3061,7 @@ unsafe fn mailimf_zone_parse(
                     _ => state = STATE_ZONE_CONT as libc::c_int,
                 },
                 1 => {
-                    match *message.offset(cur_token.wrapping_add(1i32 as libc::c_ulong) as isize)
+                    match *message.offset(cur_token.wrapping_add(1i32 as libc::size_t) as isize)
                         as libc::c_int
                     {
                         83 => state = STATE_ZONE_3 as libc::c_int,
@@ -3074,7 +3073,7 @@ unsafe fn mailimf_zone_parse(
                     }
                 }
                 2 => {
-                    if *message.offset(cur_token.wrapping_add(2i32 as libc::c_ulong) as isize)
+                    if *message.offset(cur_token.wrapping_add(2i32 as libc::size_t) as isize)
                         as libc::c_int
                         == 'T' as i32
                     {
@@ -3090,7 +3089,7 @@ unsafe fn mailimf_zone_parse(
         match state {
             3 => {
                 *result = zone;
-                *indx = cur_token.wrapping_add(3i32 as libc::c_ulong);
+                *indx = cur_token.wrapping_add(3i32 as libc::size_t);
                 return MAILIMF_NO_ERROR as libc::c_int;
             }
             4 => return MAILIMF_ERROR_PARSE as libc::c_int,
@@ -4364,7 +4363,7 @@ pub unsafe fn mailimf_atom_parse(
             } else {
                 atom = malloc(
                     end.wrapping_sub(cur_token)
-                        .wrapping_add(1i32 as libc::c_ulong),
+                        .wrapping_add(1i32 as libc::size_t),
                 ) as *mut libc::c_char;
                 if atom.is_null() {
                     res = MAILIMF_ERROR_MEMORY as libc::c_int
@@ -5899,8 +5898,8 @@ pub unsafe fn mailimf_custom_string_parse(
         }
     }
     if end != begin {
-        gstr = malloc(end.wrapping_sub(begin).wrapping_add(1i32 as libc::c_ulong))
-            as *mut libc::c_char;
+        gstr =
+            malloc(end.wrapping_sub(begin).wrapping_add(1i32 as libc::size_t)) as *mut libc::c_char;
         if gstr.is_null() {
             return MAILIMF_ERROR_MEMORY as libc::c_int;
         }

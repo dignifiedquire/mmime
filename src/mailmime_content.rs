@@ -1,5 +1,3 @@
-use libc;
-
 use crate::clist::*;
 use crate::mailimf::*;
 use crate::mailimf_types::*;
@@ -38,7 +36,6 @@ pub const STATE_CR: libc::c_uint = 3;
 pub const STATE_CODED: libc::c_uint = 1;
 pub const STATE_OUT: libc::c_uint = 2;
 
-#[no_mangle]
 pub unsafe fn mailmime_content_charset_get(
     mut content: *mut mailmime_content,
 ) -> *mut libc::c_char {
@@ -53,7 +50,7 @@ pub unsafe fn mailmime_content_charset_get(
         return charset;
     };
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_content_param_get(
     mut content: *mut mailmime_content,
     mut name: *mut libc::c_char,
@@ -78,7 +75,7 @@ pub unsafe fn mailmime_content_param_get(
     }
     return 0 as *mut libc::c_char;
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -116,7 +113,7 @@ pub unsafe fn mailmime_parse(
                 mime_fields,
                 &mut mime,
             );
-            cur_token = (cur_token as libc::c_ulong).wrapping_add(bp_token) as size_t as size_t;
+            cur_token = (cur_token as libc::size_t).wrapping_add(bp_token) as size_t as size_t;
             if r != MAILIMF_NO_ERROR as libc::c_int {
                 mailmime_fields_free(mime_fields);
                 res = r;
@@ -547,24 +544,23 @@ unsafe fn mailmime_multipart_body_parse(
     }
     match current_block {
         16924917904204750491 => {
-            preamble_end = (preamble_end as libc::c_ulong).wrapping_sub(2i32 as libc::c_ulong)
+            preamble_end = (preamble_end as libc::size_t).wrapping_sub(2i32 as libc::size_t)
                 as size_t as size_t;
             if preamble_end != preamble_begin {
-                if *message.offset(preamble_end.wrapping_sub(1i32 as libc::c_ulong) as isize)
+                if *message.offset(preamble_end.wrapping_sub(1i32 as libc::size_t) as isize)
                     as libc::c_int
                     == '\n' as i32
                 {
                     preamble_end = preamble_end.wrapping_sub(1);
-                    if preamble_end.wrapping_sub(1i32 as libc::c_ulong) >= preamble_begin {
-                        if *message
-                            .offset(preamble_end.wrapping_sub(1i32 as libc::c_ulong) as isize)
+                    if preamble_end.wrapping_sub(1i32 as libc::size_t) >= preamble_begin {
+                        if *message.offset(preamble_end.wrapping_sub(1i32 as libc::size_t) as isize)
                             as libc::c_int
                             == '\r' as i32
                         {
                             preamble_end = preamble_end.wrapping_sub(1)
                         }
                     }
-                } else if *message.offset(preamble_end.wrapping_sub(1i32 as libc::c_ulong) as isize)
+                } else if *message.offset(preamble_end.wrapping_sub(1i32 as libc::size_t) as isize)
                     as libc::c_int
                     == '\r' as i32
                 {
@@ -752,7 +748,7 @@ unsafe fn mailmime_multipart_body_parse(
                                             _ => {
                                                 epilogue_length =
                                                     length.wrapping_sub(epilogue_begin);
-                                                if preamble_length != 0i32 as libc::c_ulong {
+                                                if preamble_length != 0i32 as libc::size_t {
                                                     preamble = mailmime_data_new(
                                                         MAILMIME_DATA_TEXT as libc::c_int,
                                                         MAILMIME_MECHANISM_8BIT as libc::c_int,
@@ -773,8 +769,7 @@ unsafe fn mailmime_multipart_body_parse(
                                                 match current_block {
                                                     6612762688763383599 => {}
                                                     _ => {
-                                                        if epilogue_length != 0i32 as libc::c_ulong
-                                                        {
+                                                        if epilogue_length != 0i32 as libc::size_t {
                                                             epilogue = mailmime_data_new(
                                                                 MAILMIME_DATA_TEXT as libc::c_int,
                                                                 MAILMIME_MECHANISM_8BIT
@@ -868,7 +863,7 @@ unsafe fn is_wsp(mut ch: libc::c_char) -> libc::c_int {
     }
     return 0i32;
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_multipart_next_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -1080,20 +1075,20 @@ unsafe fn mailmime_body_part_dash2_parse(
         }
     }
     size = end_text.wrapping_sub(begin_text);
-    if size >= 1i32 as libc::c_ulong {
-        if *message.offset(end_text.wrapping_sub(1i32 as libc::c_ulong) as isize) as libc::c_int
+    if size >= 1i32 as libc::size_t {
+        if *message.offset(end_text.wrapping_sub(1i32 as libc::size_t) as isize) as libc::c_int
             == '\r' as i32
         {
             end_text = end_text.wrapping_sub(1);
             size = size.wrapping_sub(1)
-        } else if size >= 1i32 as libc::c_ulong {
-            if *message.offset(end_text.wrapping_sub(1i32 as libc::c_ulong) as isize) as libc::c_int
+        } else if size >= 1i32 as libc::size_t {
+            if *message.offset(end_text.wrapping_sub(1i32 as libc::size_t) as isize) as libc::c_int
                 == '\n' as i32
             {
                 end_text = end_text.wrapping_sub(1);
                 size = size.wrapping_sub(1);
-                if size >= 1i32 as libc::c_ulong {
-                    if *message.offset(end_text.wrapping_sub(1i32 as libc::c_ulong) as isize)
+                if size >= 1i32 as libc::size_t {
+                    if *message.offset(end_text.wrapping_sub(1i32 as libc::size_t) as isize)
                         as libc::c_int
                         == '\r' as i32
                     {
@@ -1105,7 +1100,7 @@ unsafe fn mailmime_body_part_dash2_parse(
         }
     }
     size = end_text.wrapping_sub(begin_text);
-    if size == 0i32 as libc::c_ulong {
+    if size == 0i32 as libc::size_t {
         return MAILIMF_ERROR_PARSE as libc::c_int;
     }
     *result = message.offset(begin_text as isize);
@@ -1129,7 +1124,7 @@ unsafe fn mailmime_boundary_parse(
     if strncmp(message.offset(cur_token as isize), boundary, len) != 0i32 {
         return MAILIMF_ERROR_PARSE as libc::c_int;
     }
-    cur_token = (cur_token as libc::c_ulong).wrapping_add(len) as size_t as size_t;
+    cur_token = (cur_token as libc::size_t).wrapping_add(len) as size_t as size_t;
     *indx = cur_token;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
@@ -1265,7 +1260,7 @@ unsafe fn remove_unparsed_mime_headers(mut fields: *mut mailimf_fields) {
                 if strncasecmp(
                     (*(*field).fld_data.fld_optional_field).fld_name,
                     b"Content-\x00" as *const u8 as *const libc::c_char,
-                    8i32 as libc::c_ulong,
+                    8i32 as libc::size_t,
                 ) == 0i32
                 {
                     let mut name: *mut libc::c_char = 0 as *mut libc::c_char;
@@ -1315,7 +1310,7 @@ unsafe fn remove_unparsed_mime_headers(mut fields: *mut mailimf_fields) {
         }
     }
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_extract_boundary(
     mut content_type: *mut mailmime_content,
 ) -> *mut libc::c_char {
@@ -1328,7 +1323,7 @@ pub unsafe fn mailmime_extract_boundary(
         let mut len: size_t = 0;
         let mut new_boundary: *mut libc::c_char = 0 as *mut libc::c_char;
         len = strlen(boundary);
-        new_boundary = malloc(len.wrapping_add(1i32 as libc::c_ulong)) as *mut libc::c_char;
+        new_boundary = malloc(len.wrapping_add(1i32 as libc::size_t)) as *mut libc::c_char;
         if new_boundary.is_null() {
             return 0 as *mut libc::c_char;
         }
@@ -1336,9 +1331,9 @@ pub unsafe fn mailmime_extract_boundary(
             strncpy(
                 new_boundary,
                 boundary.offset(1isize),
-                len.wrapping_sub(2i32 as libc::c_ulong),
+                len.wrapping_sub(2i32 as libc::size_t),
             );
-            *new_boundary.offset(len.wrapping_sub(2i32 as libc::c_ulong) as isize) =
+            *new_boundary.offset(len.wrapping_sub(2i32 as libc::size_t) as isize) =
                 0i32 as libc::c_char
         } else {
             strcpy(new_boundary, boundary);
@@ -1347,7 +1342,7 @@ pub unsafe fn mailmime_extract_boundary(
     }
     return boundary;
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_get_section(
     mut mime: *mut mailmime,
     mut section: *mut mailmime_section,
@@ -1449,7 +1444,6 @@ unsafe fn mailmime_get_section_list(
     };
 }
 /* decode */
-#[no_mangle]
 pub unsafe fn mailmime_base64_body_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -1488,8 +1482,8 @@ unsafe fn mailmime_base64_body_parse_impl(
     mmapstr = mmap_string_sized_new(
         length
             .wrapping_sub(cur_token)
-            .wrapping_mul(3i32 as libc::c_ulong)
-            .wrapping_div(4i32 as libc::c_ulong),
+            .wrapping_mul(3i32 as libc::size_t)
+            .wrapping_div(4i32 as libc::size_t),
     );
     if mmapstr.is_null() {
         res = MAILIMF_ERROR_MEMORY as libc::c_int
@@ -1530,8 +1524,8 @@ unsafe fn mailmime_base64_body_parse_impl(
                 current_block = 11891829943175634231;
                 break;
             } else {
-                written = (written as libc::c_ulong).wrapping_add(3i32 as libc::c_ulong) as size_t
-                    as size_t
+                written =
+                    (written as libc::size_t).wrapping_add(3i32 as libc::size_t) as size_t as size_t
             }
         }
         match current_block {
@@ -1553,7 +1547,7 @@ unsafe fn mailmime_base64_body_parse_impl(
                         res = MAILIMF_ERROR_MEMORY as libc::c_int;
                         current_block = 11891829943175634231;
                     } else {
-                        written = (written as libc::c_ulong).wrapping_add(len) as size_t as size_t;
+                        written = (written as libc::size_t).wrapping_add(len) as size_t as size_t;
                         current_block = 16738040538446813684;
                     }
                 } else {
@@ -1585,7 +1579,6 @@ unsafe fn mailmime_base64_body_parse_impl(
 }
 /* ************************************************************************* */
 /* MIME part decoding */
-#[inline]
 unsafe fn get_base64_value(mut ch: libc::c_char) -> libc::c_schar {
     if ch as libc::c_int >= 'A' as i32 && ch as libc::c_int <= 'Z' as i32 {
         return (ch as libc::c_int - 'A' as i32) as libc::c_schar;
@@ -1603,7 +1596,7 @@ unsafe fn get_base64_value(mut ch: libc::c_char) -> libc::c_schar {
         _ => return -1i32 as libc::c_schar,
     };
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_quoted_printable_body_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -1659,21 +1652,21 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
             } else {
                 match state {
                     1 => {
-                        if count > 0i32 as libc::c_ulong {
+                        if count > 0i32 as libc::size_t {
                             r = write_decoded_qp(mmapstr, start, count);
                             if r != MAILIMF_NO_ERROR as libc::c_int {
                                 res = r;
                                 current_block = 13807130624542804568;
                                 break;
                             } else {
-                                written = (written as libc::c_ulong).wrapping_add(count) as size_t
+                                written = (written as libc::size_t).wrapping_add(count) as size_t
                                     as size_t;
                                 count = 0i32 as size_t
                             }
                         }
                         match *message.offset(cur_token as isize) as libc::c_int {
                             61 => {
-                                if cur_token.wrapping_add(1i32 as libc::c_ulong) >= length {
+                                if cur_token.wrapping_add(1i32 as libc::size_t) >= length {
                                     if 0 != partial {
                                         state = STATE_OUT as libc::c_int
                                     } else {
@@ -1684,37 +1677,37 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                                     }
                                 } else {
                                     match *message.offset(
-                                        cur_token.wrapping_add(1i32 as libc::c_ulong) as isize,
+                                        cur_token.wrapping_add(1i32 as libc::size_t) as isize,
                                     ) as libc::c_int
                                     {
                                         10 => {
-                                            cur_token = (cur_token as libc::c_ulong)
-                                                .wrapping_add(2i32 as libc::c_ulong)
+                                            cur_token = (cur_token as libc::size_t)
+                                                .wrapping_add(2i32 as libc::size_t)
                                                 as size_t
                                                 as size_t;
                                             start = message.offset(cur_token as isize);
                                             state = STATE_NORMAL as libc::c_int
                                         }
                                         13 => {
-                                            if cur_token.wrapping_add(2i32 as libc::c_ulong)
+                                            if cur_token.wrapping_add(2i32 as libc::size_t)
                                                 >= length
                                             {
                                                 state = STATE_OUT as libc::c_int
                                             } else {
                                                 if *message.offset(
-                                                    cur_token.wrapping_add(2i32 as libc::c_ulong)
+                                                    cur_token.wrapping_add(2i32 as libc::size_t)
                                                         as isize,
                                                 )
                                                     as libc::c_int
                                                     == '\n' as i32
                                                 {
-                                                    cur_token = (cur_token as libc::c_ulong)
-                                                        .wrapping_add(3i32 as libc::c_ulong)
+                                                    cur_token = (cur_token as libc::size_t)
+                                                        .wrapping_add(3i32 as libc::size_t)
                                                         as size_t
                                                         as size_t
                                                 } else {
-                                                    cur_token = (cur_token as libc::c_ulong)
-                                                        .wrapping_add(2i32 as libc::c_ulong)
+                                                    cur_token = (cur_token as libc::size_t)
+                                                        .wrapping_add(2i32 as libc::size_t)
                                                         as size_t
                                                         as size_t
                                                 }
@@ -1723,7 +1716,7 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                                             }
                                         }
                                         _ => {
-                                            if cur_token.wrapping_add(2i32 as libc::c_ulong)
+                                            if cur_token.wrapping_add(2i32 as libc::size_t)
                                                 >= length
                                             {
                                                 if 0 != partial {
@@ -1745,8 +1738,8 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                                                     current_block = 13807130624542804568;
                                                     break;
                                                 } else {
-                                                    cur_token = (cur_token as libc::c_ulong)
-                                                        .wrapping_add(3i32 as libc::c_ulong)
+                                                    cur_token = (cur_token as libc::size_t)
+                                                        .wrapping_add(3i32 as libc::size_t)
                                                         as size_t
                                                         as size_t;
                                                     written = written.wrapping_add(1);
@@ -1770,14 +1763,14 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                             }
                             10 => {
                                 /* flush before writing additionnal information */
-                                if count > 0i32 as libc::c_ulong {
+                                if count > 0i32 as libc::size_t {
                                     r = write_decoded_qp(mmapstr, start, count);
                                     if r != MAILIMF_NO_ERROR as libc::c_int {
                                         res = r;
                                         current_block = 13807130624542804568;
                                         break;
                                     } else {
-                                        written = (written as libc::c_ulong).wrapping_add(count)
+                                        written = (written as libc::size_t).wrapping_add(count)
                                             as size_t
                                             as size_t;
                                         count = 0i32 as size_t
@@ -1793,8 +1786,8 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                                     current_block = 13807130624542804568;
                                     break;
                                 } else {
-                                    written = (written as libc::c_ulong)
-                                        .wrapping_add(2i32 as libc::c_ulong)
+                                    written = (written as libc::size_t)
+                                        .wrapping_add(2i32 as libc::size_t)
                                         as size_t
                                         as size_t;
                                     cur_token = cur_token.wrapping_add(1);
@@ -1809,14 +1802,14 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                             }
                             95 => {
                                 if 0 != in_header {
-                                    if count > 0i32 as libc::c_ulong {
+                                    if count > 0i32 as libc::size_t {
                                         r = write_decoded_qp(mmapstr, start, count);
                                         if r != MAILIMF_NO_ERROR as libc::c_int {
                                             res = r;
                                             current_block = 13807130624542804568;
                                             break;
                                         } else {
-                                            written = (written as libc::c_ulong).wrapping_add(count)
+                                            written = (written as libc::size_t).wrapping_add(count)
                                                 as size_t
                                                 as size_t;
                                             count = 0i32 as size_t
@@ -1845,14 +1838,14 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                         }
                         match current_block {
                             9784205294207992806 => {
-                                if count >= 512i32 as libc::c_ulong {
+                                if count >= 512i32 as libc::size_t {
                                     r = write_decoded_qp(mmapstr, start, count);
                                     if r != MAILIMF_NO_ERROR as libc::c_int {
                                         res = r;
                                         current_block = 13807130624542804568;
                                         break;
                                     } else {
-                                        written = (written as libc::c_ulong).wrapping_add(count)
+                                        written = (written as libc::size_t).wrapping_add(count)
                                             as size_t
                                             as size_t;
                                         count = 0i32 as size_t;
@@ -1870,14 +1863,14 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                         match *message.offset(cur_token as isize) as libc::c_int {
                             10 => {
                                 /* flush before writing additionnal information */
-                                if count > 0i32 as libc::c_ulong {
+                                if count > 0i32 as libc::size_t {
                                     r = write_decoded_qp(mmapstr, start, count);
                                     if r != MAILIMF_NO_ERROR as libc::c_int {
                                         res = r;
                                         current_block = 13807130624542804568;
                                         break;
                                     } else {
-                                        written = (written as libc::c_ulong).wrapping_add(count)
+                                        written = (written as libc::size_t).wrapping_add(count)
                                             as size_t
                                             as size_t;
                                         count = 0i32 as size_t
@@ -1893,8 +1886,8 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                                     current_block = 13807130624542804568;
                                     break;
                                 } else {
-                                    written = (written as libc::c_ulong)
-                                        .wrapping_add(2i32 as libc::c_ulong)
+                                    written = (written as libc::size_t)
+                                        .wrapping_add(2i32 as libc::size_t)
                                         as size_t
                                         as size_t;
                                     cur_token = cur_token.wrapping_add(1);
@@ -1904,14 +1897,14 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                             }
                             _ => {
                                 /* flush before writing additionnal information */
-                                if count > 0i32 as libc::c_ulong {
+                                if count > 0i32 as libc::size_t {
                                     r = write_decoded_qp(mmapstr, start, count);
                                     if r != MAILIMF_NO_ERROR as libc::c_int {
                                         res = r;
                                         current_block = 13807130624542804568;
                                         break;
                                     } else {
-                                        written = (written as libc::c_ulong).wrapping_add(count)
+                                        written = (written as libc::size_t).wrapping_add(count)
                                             as size_t
                                             as size_t;
                                         count = 0i32 as size_t
@@ -1928,8 +1921,8 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
                                     current_block = 13807130624542804568;
                                     break;
                                 } else {
-                                    written = (written as libc::c_ulong)
-                                        .wrapping_add(2i32 as libc::c_ulong)
+                                    written = (written as libc::size_t)
+                                        .wrapping_add(2i32 as libc::size_t)
                                         as size_t
                                         as size_t;
                                     state = STATE_NORMAL as libc::c_int
@@ -1944,14 +1937,13 @@ unsafe fn mailmime_quoted_printable_body_parse_impl(
         /* end of STATE_CR */
         match current_block {
             12693738997172594219 => {
-                if count > 0i32 as libc::c_ulong {
+                if count > 0i32 as libc::size_t {
                     r = write_decoded_qp(mmapstr, start, count);
                     if r != MAILIMF_NO_ERROR as libc::c_int {
                         res = r;
                         current_block = 13807130624542804568;
                     } else {
-                        written =
-                            (written as libc::c_ulong).wrapping_add(count) as size_t as size_t;
+                        written = (written as libc::size_t).wrapping_add(count) as size_t as size_t;
                         count = 0i32 as size_t;
                         current_block = 9255187738567101705;
                     }
@@ -2007,7 +1999,7 @@ unsafe fn hexa_to_char(mut hexdigit: libc::c_char) -> libc::c_int {
     }
     return 0i32;
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_binary_body_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -2049,7 +2041,6 @@ It is not suitable, if we want parse incomplete message in a stream mode.
 @return the return code is one of MAILIMF_ERROR_XXX or
   MAILIMF_NO_ERROR codes
 */
-#[no_mangle]
 pub unsafe fn mailmime_part_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -2144,7 +2135,6 @@ for (;;) {
 }
 @endcode
 */
-#[no_mangle]
 pub unsafe fn mailmime_part_parse_partial(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -2155,7 +2145,7 @@ pub unsafe fn mailmime_part_parse_partial(
 ) -> libc::c_int {
     return mailmime_part_parse_impl(message, length, indx, encoding, result, result_len, 1i32);
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_get_section_id(
     mut mime: *mut mailmime,
     mut result: *mut *mut mailmime_section,
@@ -2198,7 +2188,7 @@ pub unsafe fn mailmime_get_section_id(
                             if (*mime).mm_type == MAILMIME_SINGLE as libc::c_int
                                 || (*mime).mm_type == MAILMIME_MESSAGE as libc::c_int
                             {
-                                p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::c_ulong)
+                                p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::size_t)
                                     as *mut uint32_t;
                                 if p_id.is_null() {
                                     res = MAILIMF_ERROR_MEMORY as libc::c_int;
@@ -2241,7 +2231,7 @@ pub unsafe fn mailmime_get_section_id(
                                     0 as *mut clistcell
                                 }
                             }
-                            p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::c_ulong)
+                            p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::size_t)
                                 as *mut uint32_t;
                             if p_id.is_null() {
                                 res = MAILIMF_ERROR_MEMORY as libc::c_int;
@@ -2278,7 +2268,7 @@ pub unsafe fn mailmime_get_section_id(
                             if (*mime).mm_type == MAILMIME_SINGLE as libc::c_int
                                 || (*mime).mm_type == MAILMIME_MESSAGE as libc::c_int
                             {
-                                p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::c_ulong)
+                                p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::size_t)
                                     as *mut uint32_t;
                                 if p_id.is_null() {
                                     res = MAILIMF_ERROR_MEMORY as libc::c_int;
@@ -2321,7 +2311,7 @@ pub unsafe fn mailmime_get_section_id(
                                     0 as *mut clistcell
                                 }
                             }
-                            p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::c_ulong)
+                            p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::size_t)
                                 as *mut uint32_t;
                             if p_id.is_null() {
                                 res = MAILIMF_ERROR_MEMORY as libc::c_int;

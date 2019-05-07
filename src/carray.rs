@@ -14,10 +14,14 @@ pub unsafe fn carray_count(array: *mut carray) -> libc::c_uint {
     (*array).len
 }
 
+pub unsafe fn carray_get(mut array: *mut carray, mut indx: libc::c_uint) -> *mut libc::c_void {
+    *(*array).array.offset(indx as isize)
+}
+
 /* Creates a new array of pointers, with initsize preallocated cells */
 pub unsafe fn carray_new(mut initsize: libc::c_uint) -> *mut carray {
     let mut array: *mut carray = 0 as *mut carray;
-    array = malloc(::std::mem::size_of::<carray>() as libc::c_ulong) as *mut carray;
+    array = malloc(::std::mem::size_of::<carray>()) as *mut carray;
     if array.is_null() {
         return 0 as *mut carray;
     }
@@ -26,10 +30,9 @@ pub unsafe fn carray_new(mut initsize: libc::c_uint) -> *mut carray {
     }
     (*array).len = 0i32 as libc::c_uint;
     (*array).max = initsize;
-    (*array).array = malloc(
-        (::std::mem::size_of::<*mut libc::c_void>() as libc::c_ulong)
-            .wrapping_mul(initsize as libc::c_ulong),
-    ) as *mut *mut libc::c_void;
+    (*array).array =
+        malloc((::std::mem::size_of::<*mut libc::c_void>()).wrapping_mul(initsize as libc::size_t))
+            as *mut *mut libc::c_void;
     if (*array).array.is_null() {
         free(array as *mut libc::c_void);
         return 0 as *mut carray;
@@ -67,8 +70,7 @@ pub unsafe fn carray_set_size(mut array: *mut carray, mut new_size: libc::c_uint
         }
         new = realloc(
             (*array).array as *mut libc::c_void,
-            (::std::mem::size_of::<*mut libc::c_void>() as libc::c_ulong)
-                .wrapping_mul(n as libc::c_ulong),
+            (::std::mem::size_of::<*mut libc::c_void>()).wrapping_mul(n as libc::size_t),
         ) as *mut *mut libc::c_void as *mut libc::c_void;
         if new.is_null() {
             return -1i32;
@@ -103,8 +105,8 @@ pub unsafe fn carray_delete_slow(mut array: *mut carray, mut indx: libc::c_uint)
         memmove(
             (*array).array.offset(indx as isize) as *mut libc::c_void,
             (*array).array.offset(indx as isize).offset(1isize) as *const libc::c_void,
-            ((*array).len.wrapping_sub(indx) as libc::c_ulong)
-                .wrapping_mul(::std::mem::size_of::<*mut libc::c_void>() as libc::c_ulong),
+            ((*array).len.wrapping_sub(indx) as libc::size_t)
+                .wrapping_mul(::std::mem::size_of::<*mut libc::c_void>()),
         );
     }
     return 0i32;

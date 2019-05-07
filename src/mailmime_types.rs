@@ -224,7 +224,7 @@ pub unsafe fn mailmime_composite_type_new(
     mut ct_token: *mut libc::c_char,
 ) -> *mut mailmime_composite_type {
     let mut ct: *mut mailmime_composite_type = 0 as *mut mailmime_composite_type;
-    ct = malloc(::std::mem::size_of::<mailmime_composite_type>() as libc::c_ulong)
+    ct = malloc(::std::mem::size_of::<mailmime_composite_type>() as libc::size_t)
         as *mut mailmime_composite_type;
     if ct.is_null() {
         return 0 as *mut mailmime_composite_type;
@@ -252,7 +252,7 @@ pub unsafe fn mailmime_content_new(
 ) -> *mut mailmime_content {
     let mut content: *mut mailmime_content = 0 as *mut mailmime_content;
     content =
-        malloc(::std::mem::size_of::<mailmime_content>() as libc::c_ulong) as *mut mailmime_content;
+        malloc(::std::mem::size_of::<mailmime_content>() as libc::size_t) as *mut mailmime_content;
     if content.is_null() {
         return 0 as *mut mailmime_content;
     }
@@ -325,7 +325,7 @@ pub unsafe fn mailmime_discrete_type_new(
     mut dt_extension: *mut libc::c_char,
 ) -> *mut mailmime_discrete_type {
     let mut discrete_type: *mut mailmime_discrete_type = 0 as *mut mailmime_discrete_type;
-    discrete_type = malloc(::std::mem::size_of::<mailmime_discrete_type>() as libc::c_ulong)
+    discrete_type = malloc(::std::mem::size_of::<mailmime_discrete_type>() as libc::size_t)
         as *mut mailmime_discrete_type;
     if discrete_type.is_null() {
         return 0 as *mut mailmime_discrete_type;
@@ -355,7 +355,7 @@ pub unsafe fn mailmime_mechanism_new(
     mut enc_token: *mut libc::c_char,
 ) -> *mut mailmime_mechanism {
     let mut mechanism: *mut mailmime_mechanism = 0 as *mut mailmime_mechanism;
-    mechanism = malloc(::std::mem::size_of::<mailmime_mechanism>() as libc::c_ulong)
+    mechanism = malloc(::std::mem::size_of::<mailmime_mechanism>() as libc::size_t)
         as *mut mailmime_mechanism;
     if mechanism.is_null() {
         return 0 as *mut mailmime_mechanism;
@@ -370,7 +370,7 @@ pub unsafe fn mailmime_parameter_new(
     mut pa_value: *mut libc::c_char,
 ) -> *mut mailmime_parameter {
     let mut parameter: *mut mailmime_parameter = 0 as *mut mailmime_parameter;
-    parameter = malloc(::std::mem::size_of::<mailmime_parameter>() as libc::c_ulong)
+    parameter = malloc(::std::mem::size_of::<mailmime_parameter>() as libc::size_t)
         as *mut mailmime_parameter;
     if parameter.is_null() {
         return 0 as *mut mailmime_parameter;
@@ -387,7 +387,7 @@ pub unsafe fn mailmime_type_new(
 ) -> *mut mailmime_type {
     let mut mime_type: *mut mailmime_type = 0 as *mut mailmime_type;
     mime_type =
-        malloc(::std::mem::size_of::<mailmime_type>() as libc::c_ulong) as *mut mailmime_type;
+        malloc(::std::mem::size_of::<mailmime_type>() as libc::size_t) as *mut mailmime_type;
     if mime_type.is_null() {
         return 0 as *mut mailmime_type;
     }
@@ -402,7 +402,7 @@ pub unsafe fn mailmime_type_new(
 
 pub unsafe fn mailmime_language_new(mut lg_list: *mut clist) -> *mut mailmime_language {
     let mut lang: *mut mailmime_language = 0 as *mut mailmime_language;
-    lang = malloc(::std::mem::size_of::<mailmime_language>() as libc::c_ulong)
+    lang = malloc(::std::mem::size_of::<mailmime_language>() as libc::size_t)
         as *mut mailmime_language;
     if lang.is_null() {
         return 0 as *mut mailmime_language;
@@ -437,7 +437,7 @@ pub unsafe fn mailmime_field_new(
     mut fld_location: *mut libc::c_char,
 ) -> *mut mailmime_field {
     let mut field: *mut mailmime_field = 0 as *mut mailmime_field;
-    field = malloc(::std::mem::size_of::<mailmime_field>() as libc::c_ulong) as *mut mailmime_field;
+    field = malloc(::std::mem::size_of::<mailmime_field>() as libc::size_t) as *mut mailmime_field;
     if field.is_null() {
         return 0 as *mut mailmime_field;
     }
@@ -564,7 +564,7 @@ pub unsafe fn mailmime_disposition_type_free(mut dsp_type: *mut mailmime_disposi
 pub unsafe fn mailmime_fields_new(mut fld_list: *mut clist) -> *mut mailmime_fields {
     let mut fields: *mut mailmime_fields = 0 as *mut mailmime_fields;
     fields =
-        malloc(::std::mem::size_of::<mailmime_fields>() as libc::c_ulong) as *mut mailmime_fields;
+        malloc(::std::mem::size_of::<mailmime_fields>() as libc::size_t) as *mut mailmime_fields;
     if fields.is_null() {
         return 0 as *mut mailmime_fields;
     }
@@ -586,7 +586,7 @@ pub unsafe fn mailmime_fields_free(mut fields: *mut mailmime_fields) {
 
 pub unsafe fn mailmime_multipart_body_new(mut bd_list: *mut clist) -> *mut mailmime_multipart_body {
     let mut mp_body: *mut mailmime_multipart_body = 0 as *mut mailmime_multipart_body;
-    mp_body = malloc(::std::mem::size_of::<mailmime_multipart_body>() as libc::c_ulong)
+    mp_body = malloc(::std::mem::size_of::<mailmime_multipart_body>() as libc::size_t)
         as *mut mailmime_multipart_body;
     if mp_body.is_null() {
         return 0 as *mut mailmime_multipart_body;
@@ -617,7 +617,7 @@ pub unsafe fn mailmime_data_new(
 ) -> *mut mailmime_data {
     let mut mime_data: *mut mailmime_data = 0 as *mut mailmime_data;
     mime_data =
-        malloc(::std::mem::size_of::<mailmime_data>() as libc::c_ulong) as *mut mailmime_data;
+        malloc(::std::mem::size_of::<mailmime_data>() as libc::size_t) as *mut mailmime_data;
     if mime_data.is_null() {
         return 0 as *mut mailmime_data;
     }
@@ -660,7 +660,7 @@ pub unsafe fn mailmime_new(
 ) -> *mut mailmime {
     let mut mime: *mut mailmime = 0 as *mut mailmime;
     let mut cur: *mut clistiter = 0 as *mut clistiter;
-    mime = malloc(::std::mem::size_of::<mailmime>() as libc::c_ulong) as *mut mailmime;
+    mime = malloc(::std::mem::size_of::<mailmime>() as libc::size_t) as *mut mailmime;
     if mime.is_null() {
         return 0 as *mut mailmime;
     }
@@ -761,7 +761,7 @@ pub unsafe fn mailmime_encoded_word_new(
     mut wd_text: *mut libc::c_char,
 ) -> *mut mailmime_encoded_word {
     let mut ew: *mut mailmime_encoded_word = 0 as *mut mailmime_encoded_word;
-    ew = malloc(::std::mem::size_of::<mailmime_encoded_word>() as libc::c_ulong)
+    ew = malloc(::std::mem::size_of::<mailmime_encoded_word>() as libc::size_t)
         as *mut mailmime_encoded_word;
     if ew.is_null() {
         return 0 as *mut mailmime_encoded_word;
@@ -790,7 +790,7 @@ pub unsafe fn mailmime_disposition_new(
     mut dsp_parms: *mut clist,
 ) -> *mut mailmime_disposition {
     let mut dsp: *mut mailmime_disposition = 0 as *mut mailmime_disposition;
-    dsp = malloc(::std::mem::size_of::<mailmime_disposition>() as libc::c_ulong)
+    dsp = malloc(::std::mem::size_of::<mailmime_disposition>() as libc::size_t)
         as *mut mailmime_disposition;
     if dsp.is_null() {
         return 0 as *mut mailmime_disposition;
@@ -805,7 +805,7 @@ pub unsafe fn mailmime_disposition_type_new(
     mut dsp_extension: *mut libc::c_char,
 ) -> *mut mailmime_disposition_type {
     let mut m_dsp_type: *mut mailmime_disposition_type = 0 as *mut mailmime_disposition_type;
-    m_dsp_type = malloc(::std::mem::size_of::<mailmime_disposition_type>() as libc::c_ulong)
+    m_dsp_type = malloc(::std::mem::size_of::<mailmime_disposition_type>() as libc::size_t)
         as *mut mailmime_disposition_type;
     if m_dsp_type.is_null() {
         return 0 as *mut mailmime_disposition_type;
@@ -825,7 +825,7 @@ pub unsafe fn mailmime_disposition_parm_new(
     mut pa_parameter: *mut mailmime_parameter,
 ) -> *mut mailmime_disposition_parm {
     let mut dsp_parm: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
-    dsp_parm = malloc(::std::mem::size_of::<mailmime_disposition_parm>() as libc::c_ulong)
+    dsp_parm = malloc(::std::mem::size_of::<mailmime_disposition_parm>() as libc::size_t)
         as *mut mailmime_disposition_parm;
     if dsp_parm.is_null() {
         return 0 as *mut mailmime_disposition_parm;
@@ -846,7 +846,7 @@ pub unsafe fn mailmime_disposition_parm_new(
 pub unsafe fn mailmime_section_new(mut sec_list: *mut clist) -> *mut mailmime_section {
     let mut section: *mut mailmime_section = 0 as *mut mailmime_section;
     section =
-        malloc(::std::mem::size_of::<mailmime_section>() as libc::c_ulong) as *mut mailmime_section;
+        malloc(::std::mem::size_of::<mailmime_section>() as libc::size_t) as *mut mailmime_section;
     if section.is_null() {
         return 0 as *mut mailmime_section;
     }

@@ -43,11 +43,11 @@ pub unsafe fn charconv(
     fromcode = get_valid_charset(fromcode);
     if extended_charconv.is_some() {
         let mut result_length: size_t = 0;
-        result_length = length.wrapping_mul(6i32 as libc::c_ulong);
+        result_length = length.wrapping_mul(6i32 as libc::size_t);
         *result = malloc(
             length
-                .wrapping_mul(6i32 as libc::c_ulong)
-                .wrapping_add(1i32 as libc::c_ulong),
+                .wrapping_mul(6i32 as libc::size_t)
+                .wrapping_add(1i32 as libc::size_t),
         ) as *mut libc::c_char;
         if (*result).is_null() {
             res = MAIL_CHARCONV_ERROR_MEMORY as libc::c_int
@@ -65,7 +65,7 @@ pub unsafe fn charconv(
             } else {
                 out = realloc(
                     *result as *mut libc::c_void,
-                    result_length.wrapping_add(1i32 as libc::c_ulong),
+                    result_length.wrapping_add(1i32 as libc::size_t),
                 ) as *mut libc::c_char;
                 if !out.is_null() {
                     *result = out
@@ -81,8 +81,8 @@ pub unsafe fn charconv(
     if conv == -1i32 as iconv_t {
         res = MAIL_CHARCONV_ERROR_UNKNOWN_CHARSET as libc::c_int
     } else {
-        out_size = (6i32 as libc::c_ulong).wrapping_mul(length);
-        out = malloc(out_size.wrapping_add(1i32 as libc::c_ulong)) as *mut libc::c_char;
+        out_size = (6i32 as libc::size_t).wrapping_mul(length);
+        out = malloc(out_size.wrapping_add(1i32 as libc::size_t)) as *mut libc::c_char;
         if out.is_null() {
             res = MAIL_CHARCONV_ERROR_MEMORY as libc::c_int
         } else {
@@ -106,7 +106,7 @@ pub unsafe fn charconv(
                 count = old_out_size.wrapping_sub(out_size);
                 pout = realloc(
                     out as *mut libc::c_void,
-                    count.wrapping_add(1i32 as libc::c_ulong),
+                    count.wrapping_add(1i32 as libc::size_t),
                 ) as *mut libc::c_char;
                 if !pout.is_null() {
                     out = pout
@@ -139,7 +139,7 @@ unsafe fn mail_iconv(
     loop {
         ret1 = iconv(cd, &mut ib, &mut ibl, &mut ob, &mut obl);
         if ret1 != -1i32 as size_t {
-            ret = (ret as libc::c_ulong).wrapping_add(ret1) as size_t as size_t
+            ret = (ret as libc::size_t).wrapping_add(ret1) as size_t as size_t
         }
         if 0 != ibl && 0 != obl && *__error() == 92i32 {
             if !inrepls.is_null() {
@@ -175,7 +175,7 @@ unsafe fn mail_iconv(
                     ib = ib.offset(1isize);
                     ibl = ibl.wrapping_sub(1);
                     ob = ob.offset(n as isize);
-                    obl = (obl as libc::c_ulong).wrapping_sub(n) as size_t as size_t;
+                    obl = (obl as libc::c_ulong).wrapping_sub(n as u64) as size_t;
                     ret = ret.wrapping_add(1);
                     continue;
                 }
@@ -261,8 +261,8 @@ pub unsafe fn charconv_buffer(
     fromcode = get_valid_charset(fromcode);
     if extended_charconv.is_some() {
         let mut result_length: size_t = 0;
-        result_length = length.wrapping_mul(6i32 as libc::c_ulong);
-        mmapstr = mmap_string_sized_new(result_length.wrapping_add(1i32 as libc::c_ulong));
+        result_length = length.wrapping_mul(6i32 as usize);
+        mmapstr = mmap_string_sized_new(result_length.wrapping_add(1i32 as libc::size_t));
         *result_len = 0i32 as size_t;
         if mmapstr.is_null() {
             res = MAIL_CHARCONV_ERROR_MEMORY as libc::c_int
@@ -299,8 +299,8 @@ pub unsafe fn charconv_buffer(
     if conv == -1i32 as iconv_t {
         res = MAIL_CHARCONV_ERROR_UNKNOWN_CHARSET as libc::c_int
     } else {
-        out_size = (6i32 as libc::c_ulong).wrapping_mul(length);
-        mmapstr = mmap_string_sized_new(out_size.wrapping_add(1i32 as libc::c_ulong));
+        out_size = (6i32 as libc::size_t).wrapping_mul(length);
+        mmapstr = mmap_string_sized_new(out_size.wrapping_add(1i32 as libc::size_t));
         if mmapstr.is_null() {
             res = MAIL_CHARCONV_ERROR_MEMORY as libc::c_int
         } else {

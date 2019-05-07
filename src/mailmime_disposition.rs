@@ -496,7 +496,7 @@ unsafe fn mailmime_filename_parm_parse(
     *result = value;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_disposition_guess_type(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -517,7 +517,6 @@ pub unsafe fn mailmime_disposition_guess_type(
     };
 }
 
-#[no_mangle]
 pub unsafe fn mailmime_disposition_type_parse(
     mut message: *const libc::c_char,
     mut length: size_t,

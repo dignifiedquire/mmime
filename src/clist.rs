@@ -25,7 +25,7 @@ pub type clist_func =
 /* Allocate a new pointer list */
 pub unsafe fn clist_new() -> *mut clist {
     let mut lst: *mut clist = 0 as *mut clist;
-    lst = malloc(::std::mem::size_of::<clist>() as libc::c_ulong) as *mut clist;
+    lst = malloc(::std::mem::size_of::<clist>() as libc::size_t) as *mut clist;
     if lst.is_null() {
         return 0 as *mut clist;
     }
@@ -55,7 +55,7 @@ pub unsafe fn clist_insert_before(
     mut data: *mut libc::c_void,
 ) -> libc::c_int {
     let mut c: *mut clistcell = 0 as *mut clistcell;
-    c = malloc(::std::mem::size_of::<clistcell>() as libc::c_ulong) as *mut clistcell;
+    c = malloc(::std::mem::size_of::<clistcell>() as libc::size_t) as *mut clistcell;
     if c.is_null() {
         return -1i32;
     }
@@ -92,7 +92,7 @@ pub unsafe fn clist_insert_after(
     mut data: *mut libc::c_void,
 ) -> libc::c_int {
     let mut c: *mut clistcell = 0 as *mut clistcell;
-    c = malloc(::std::mem::size_of::<clistcell>() as libc::c_ulong) as *mut clistcell;
+    c = malloc(::std::mem::size_of::<clistcell>() as libc::size_t) as *mut clistcell;
     if c.is_null() {
         return -1i32;
     }

@@ -1009,7 +1009,7 @@ unsafe fn guess_field_type(mut name: *mut libc::c_char) -> libc::c_int {
     if strncasecmp(
         name,
         b"Content-\x00" as *const u8 as *const libc::c_char,
-        8i32 as libc::c_ulong,
+        8i32 as libc::size_t,
     ) != 0i32
     {
         return MAILMIME_FIELD_NONE as libc::c_int;

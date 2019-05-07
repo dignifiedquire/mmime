@@ -38,7 +38,7 @@ pub type chashiter = chashcell;
 */
 pub unsafe fn chash_new(mut size: libc::c_uint, mut flags: libc::c_int) -> *mut chash {
     let mut h: *mut chash = 0 as *mut chash;
-    h = malloc(::std::mem::size_of::<chash>() as libc::c_ulong) as *mut chash;
+    h = malloc(::std::mem::size_of::<chash>() as libc::size_t) as *mut chash;
     if h.is_null() {
         return 0 as *mut chash;
     }
@@ -47,8 +47,8 @@ pub unsafe fn chash_new(mut size: libc::c_uint, mut flags: libc::c_int) -> *mut 
     }
     (*h).count = 0i32 as libc::c_uint;
     (*h).cells = calloc(
-        size as libc::c_ulong,
-        ::std::mem::size_of::<*mut chashcell>() as libc::c_ulong,
+        size as libc::size_t,
+        ::std::mem::size_of::<*mut chashcell>() as libc::size_t,
     ) as *mut *mut chashcell;
     if (*h).cells.is_null() {
         free(h as *mut libc::c_void);
@@ -109,8 +109,8 @@ pub unsafe fn chash_clear(mut hash: *mut chash) {
     memset(
         (*hash).cells as *mut libc::c_void,
         0i32,
-        ((*hash).size as libc::c_ulong)
-            .wrapping_mul(::std::mem::size_of::<*mut chashcell>() as libc::c_ulong),
+        ((*hash).size as libc::size_t)
+            .wrapping_mul(::std::mem::size_of::<*mut chashcell>() as libc::size_t),
     );
     (*hash).count = 0i32 as libc::c_uint;
 }
@@ -160,7 +160,7 @@ pub unsafe fn chash_set(
                 }
                 if (*iter).key.len == (*key).len
                     && (*iter).func == func
-                    && 0 == memcmp((*iter).key.data, (*key).data, (*key).len as libc::c_ulong)
+                    && 0 == memcmp((*iter).key.data, (*key).data, (*key).len as libc::size_t)
                 {
                     /* found, replacing entry */
                     if 0 != (*hash).copyvalue {
@@ -200,7 +200,7 @@ pub unsafe fn chash_set(
                         (*oldvalue).data = 0 as *mut libc::c_void;
                         (*oldvalue).len = 0i32 as libc::c_uint
                     }
-                    cell = malloc(::std::mem::size_of::<chashcell>() as libc::c_ulong)
+                    cell = malloc(::std::mem::size_of::<chashcell>() as libc::size_t)
                         as *mut chashcell;
                     if !cell.is_null() {
                         if 0 != (*hash).copykey {
@@ -260,11 +260,11 @@ pub unsafe fn chash_set(
 #[inline]
 unsafe fn chash_dup(mut data: *const libc::c_void, mut len: libc::c_uint) -> *mut libc::c_char {
     let mut r: *mut libc::c_void = 0 as *mut libc::c_void;
-    r = malloc(len as libc::c_ulong) as *mut libc::c_char as *mut libc::c_void;
+    r = malloc(len as libc::size_t) as *mut libc::c_char as *mut libc::c_void;
     if r.is_null() {
         return 0 as *mut libc::c_char;
     }
-    memcpy(r, data, len as libc::c_ulong);
+    memcpy(r, data, len as libc::size_t);
     return r as *mut libc::c_char;
 }
 
@@ -298,8 +298,8 @@ pub unsafe fn chash_resize(mut hash: *mut chash, mut size: libc::c_uint) -> libc
         return 0i32;
     }
     cells = calloc(
-        size as libc::c_ulong,
-        ::std::mem::size_of::<*mut chashcell>() as libc::c_ulong,
+        size as libc::size_t,
+        ::std::mem::size_of::<*mut chashcell>() as libc::size_t,
     ) as *mut *mut chashcell;
     if cells.is_null() {
         return -1i32;
@@ -339,7 +339,7 @@ pub unsafe fn chash_get(
     while !iter.is_null() {
         if (*iter).key.len == (*key).len
             && (*iter).func == func
-            && 0 == memcmp((*iter).key.data, (*key).data, (*key).len as libc::c_ulong)
+            && 0 == memcmp((*iter).key.data, (*key).data, (*key).len as libc::size_t)
         {
             *result = (*iter).value;
             return 0i32;
@@ -368,7 +368,7 @@ pub unsafe fn chash_delete(
     while !iter.is_null() {
         if (*iter).key.len == (*key).len
             && (*iter).func == func
-            && 0 == memcmp((*iter).key.data, (*key).data, (*key).len as libc::c_ulong)
+            && 0 == memcmp((*iter).key.data, (*key).data, (*key).len as libc::size_t)
         {
             if !old.is_null() {
                 (*old).next = (*iter).next

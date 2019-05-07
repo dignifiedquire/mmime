@@ -303,13 +303,13 @@ unsafe fn mailmime_non_encoded_word_parse(
             }
             cur_token = cur_token.wrapping_add(1)
         }
-        if cur_token.wrapping_sub(begin) == 0i32 as libc::c_ulong {
+        if cur_token.wrapping_sub(begin) == 0i32 as libc::size_t {
             res = MAILIMF_ERROR_PARSE as libc::c_int
         } else {
             text = malloc(
                 cur_token
                     .wrapping_sub(begin)
-                    .wrapping_add(1i32 as libc::c_ulong),
+                    .wrapping_add(1i32 as libc::size_t),
             ) as *mut libc::c_char;
             if text.is_null() {
                 res = MAILIMF_ERROR_MEMORY as libc::c_int
@@ -330,7 +330,7 @@ unsafe fn mailmime_non_encoded_word_parse(
     }
     return res;
 }
-#[no_mangle]
+
 pub unsafe fn mailmime_encoded_word_parse(
     mut message: *const libc::c_char,
     mut length: size_t,
@@ -452,7 +452,7 @@ pub unsafe fn mailmime_encoded_word_parse(
                                         has_base64_padding = 0i32;
                                         end_encoding = cur_token;
                                         while !(end_encoding >= length) {
-                                            if end_encoding.wrapping_add(1i32 as libc::c_ulong)
+                                            if end_encoding.wrapping_add(1i32 as libc::size_t)
                                                 < length
                                             {
                                                 if *message.offset(end_encoding as isize)
@@ -460,7 +460,7 @@ pub unsafe fn mailmime_encoded_word_parse(
                                                     == '?' as i32
                                                     && *message.offset(
                                                         end_encoding
-                                                            .wrapping_add(1i32 as libc::c_ulong)
+                                                            .wrapping_add(1i32 as libc::size_t)
                                                             as isize,
                                                     )
                                                         as libc::c_int
@@ -475,12 +475,12 @@ pub unsafe fn mailmime_encoded_word_parse(
                                             end_encoding = end_encoding.wrapping_add(1)
                                         }
                                         copy_len = end_encoding.wrapping_sub(lookfwd_cur_token);
-                                        if copy_len > 0i32 as libc::c_ulong {
+                                        if copy_len > 0i32 as libc::size_t {
                                             if encoding == MAILMIME_ENCODING_B as libc::c_int {
-                                                if end_encoding >= 1i32 as libc::c_ulong {
+                                                if end_encoding >= 1i32 as libc::size_t {
                                                     if *message.offset(
                                                         end_encoding
-                                                            .wrapping_sub(1i32 as libc::c_ulong)
+                                                            .wrapping_sub(1i32 as libc::size_t)
                                                             as isize,
                                                     )
                                                         as libc::c_int
@@ -494,7 +494,7 @@ pub unsafe fn mailmime_encoded_word_parse(
                                                 body as *mut libc::c_void,
                                                 old_body_len
                                                     .wrapping_add(copy_len)
-                                                    .wrapping_add(1i32 as libc::c_ulong),
+                                                    .wrapping_add(1i32 as libc::size_t),
                                             )
                                                 as *mut libc::c_char;
                                             if body.is_null() {
@@ -513,7 +513,7 @@ pub unsafe fn mailmime_encoded_word_parse(
                                                 *body
                                                     .offset(old_body_len.wrapping_add(copy_len)
                                                         as isize) = '\u{0}' as i32 as libc::c_char;
-                                                old_body_len = (old_body_len as libc::c_ulong)
+                                                old_body_len = (old_body_len as libc::size_t)
                                                     .wrapping_add(copy_len)
                                                     as size_t
                                                     as size_t
@@ -680,16 +680,17 @@ pub unsafe fn mailmime_encoded_word_parse(
                                                     match current_block {
                                                         13900684162107791171 => {}
                                                         _ => {
-                                                            text = malloc(decoded_len.wrapping_add(
-                                                                1i32 as libc::c_ulong,
-                                                            ))
-                                                                as *mut libc::c_char;
+                                                            text =
+                                                                malloc(decoded_len.wrapping_add(
+                                                                    1i32 as libc::size_t,
+                                                                ))
+                                                                    as *mut libc::c_char;
                                                             if text.is_null() {
                                                                 res = MAILIMF_ERROR_MEMORY
                                                                     as libc::c_int
                                                             } else {
                                                                 if decoded_len
-                                                                    > 0i32 as libc::c_ulong
+                                                                    > 0i32 as libc::size_t
                                                                 {
                                                                     memcpy(
                                                                         text as *mut libc::c_void,
@@ -848,7 +849,7 @@ unsafe fn mailmime_etoken_parse(
 ) -> libc::c_int {
     return mailimf_custom_string_parse(message, length, indx, result, Some(is_etoken_char));
 }
-#[no_mangle]
+
 pub unsafe fn is_etoken_char(mut ch: libc::c_char) -> libc::c_int {
     let mut uch: libc::c_uchar = ch as libc::c_uchar;
     if (uch as libc::c_int) < 31i32 {
