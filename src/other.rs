@@ -8,7 +8,7 @@ use crate::mailmime_types_helper::*;
 
 pub(crate) use libc::{
     calloc, close, free, isalpha, isdigit, malloc, memcmp, memcpy, memmove, memset, realloc,
-    strcpy, strdup, strlen, strncmp, strncpy,
+    strcpy, strlen, strncmp, strncpy,
 };
 
 pub(crate) unsafe fn strcasecmp(s1: *const libc::c_char, s2: *const libc::c_char) -> libc::c_int {
@@ -48,6 +48,8 @@ pub(crate) unsafe fn strncasecmp(
 
 #[cfg(not(windows))]
 pub(crate) use libc::snprintf;
+#[cfg(not(windows))]
+pub(crate) use libc::strdup;
 
 #[cfg(windows)]
 extern "C" {
@@ -57,6 +59,7 @@ extern "C" {
         format: *const libc::c_char,
         _: ...
     ) -> libc::c_int;
+    pub(crate) fn strdup(s: *const libc::c_char) -> *mut libc::c_char;
 }
 
 pub(crate) type size_t = libc::size_t;
