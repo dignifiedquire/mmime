@@ -1,7 +1,14 @@
+use std::sync::Mutex;
+
+use lazy_static::lazy_static;
 use libc;
 
 use crate::chash::*;
 use crate::x::*;
+
+lazy_static! {
+    static ref mmapstring_lock: Mutex<()> = Mutex::new(());
+}
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -345,13 +352,12 @@ pub unsafe fn mmap_string_ref(mut string: *mut MMAPString) -> libc::c_int {
         data: 0 as *mut libc::c_void,
         len: 0,
     };
-    pthread_mutex_lock(&mut mmapstring_lock);
+    mmapstring_lock.lock().unwrap();
     if mmapstring_hashtable.is_null() {
         mmapstring_hashtable_init();
     }
     ht = mmapstring_hashtable;
     if ht.is_null() {
-        pthread_mutex_unlock(&mut mmapstring_lock);
         return -1i32;
     }
     key.data = &mut (*string).str_0 as *mut *mut libc::c_char as *mut libc::c_void;
@@ -364,15 +370,12 @@ pub unsafe fn mmap_string_ref(mut string: *mut MMAPString) -> libc::c_int {
         &mut data,
         0 as *mut chashdatum,
     );
-    pthread_mutex_unlock(&mut mmapstring_lock);
+
     if r < 0i32 {
         return r;
     }
     return 0i32;
 }
-
-/* MMAPString references */
-static mut mmapstring_lock: pthread_mutex_t = libc::PTHREAD_MUTEX_INITIALIZER;
 
 static mut mmapstring_hashtable: *mut chash = 0 as *const chash as *mut chash;
 unsafe fn mmapstring_hashtable_init() {
@@ -394,10 +397,9 @@ pub unsafe fn mmap_string_unref(mut str: *mut libc::c_char) -> libc::c_int {
     if str.is_null() {
         return -1i32;
     }
-    pthread_mutex_lock(&mut mmapstring_lock);
+    mmapstring_lock.lock().unwrap();
     ht = mmapstring_hashtable;
     if ht.is_null() {
-        pthread_mutex_unlock(&mut mmapstring_lock);
         return -1i32;
     }
     key.data = &mut str as *mut *mut libc::c_char as *mut libc::c_void;
@@ -415,7 +417,6 @@ pub unsafe fn mmap_string_unref(mut str: *mut libc::c_char) -> libc::c_int {
             mmapstring_hashtable = 0 as *mut chash
         }
     }
-    pthread_mutex_unlock(&mut mmapstring_lock);
     if !string.is_null() {
         mmap_string_free(string);
         return 0i32;

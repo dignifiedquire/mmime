@@ -77,19 +77,12 @@ pub const MAILIMF_ERROR_MEMORY: libc::c_uint = 2;
 pub const MAILIMF_ERROR_PARSE: libc::c_uint = 1;
 pub const MAILIMF_NO_ERROR: libc::c_uint = 0;
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _opaque_pthread_mutex_t {
-    pub __sig: libc::c_long,
-    pub __opaque: [libc::c_char; 56],
-}
-
 pub use libc::{
     atoi, calloc, close, closedir, exit, fclose, fgets, fopen, fread, free, fseek, fstat, ftell,
     fwrite, gmtime, gmtime_r, isalpha, isdigit, localtime, localtime_r, malloc, memcmp, memcpy,
-    memmove, memset, mkdir, open, opendir, printf, pthread_mutex_t, read, readdir, realloc, remove,
-    sleep, snprintf, sprintf, sscanf, strcasecmp, strcat, strchr, strcmp, strcpy, strcspn, strdup,
-    strlen, strncasecmp, strncmp, strncpy, strrchr, strspn, strstr, strtol, system, time, tm,
+    memmove, memset, mkdir, open, opendir, printf, read, readdir, realloc, remove, sleep, snprintf,
+    sprintf, sscanf, strcasecmp, strcat, strchr, strcmp, strcpy, strcspn, strdup, strlen,
+    strncasecmp, strncmp, strncpy, strrchr, strspn, strstr, strtol, system, time, tm,
     tolower as __tolower, toupper as __toupper, usleep, write,
 };
 

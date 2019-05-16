@@ -17,6 +17,4 @@ pub type uid_t = libc::uid_t;
 extern "C" {
     pub fn getpid() -> pid_t;
     pub fn random() -> libc::c_long;
-    pub fn pthread_mutex_unlock(_: *mut pthread_mutex_t) -> libc::c_int;
-    pub fn pthread_mutex_lock(_: *mut pthread_mutex_t) -> libc::c_int;
 }
