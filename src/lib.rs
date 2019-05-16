@@ -62,11 +62,6 @@ mod tests {
     }
 
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-
-    #[test]
     fn mailmime_parse_test() {
         unsafe {
             let data = "MIME-Version: 1.0\
@@ -95,7 +90,9 @@ mod tests {
                 &mut mime,
             );
 
-            assert_eq!(res, 0);
+            assert_eq!(res, MAIL_NO_ERROR as libc::c_int);
+            assert!(!mime.is_null());
+
             display_mime(mime);
 
             mailmime_types::mailmime_free(mime);
