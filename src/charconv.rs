@@ -23,7 +23,7 @@ pub unsafe fn charconv(
 
         let (res, _, _) = encoding.decode(data);
         let res_c = CString::new(res.as_bytes()).unwrap();
-        *result = libc::strdup(res_c.as_ptr()) as *mut _;
+        *result = strdup(res_c.as_ptr()) as *mut _;
 
         MAIL_CHARCONV_NO_ERROR as libc::c_int
     } else {

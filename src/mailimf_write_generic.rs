@@ -423,10 +423,10 @@ pub unsafe fn mailimf_header_string_write_driver(
             },
             1 => match *p as libc::c_int {
                 13 | 10 | 32 | 9 => {
-                    if p.wrapping_offset_from(word_begin) as libc::c_long
-                        + *col as libc::c_long
-                        + 1i32 as libc::c_long
-                        > 72i32 as libc::c_long
+                    if p.wrapping_offset_from(word_begin) as libc::c_int
+                        + *col as libc::c_int
+                        + 1i32 as libc::c_int
+                        > 72i32 as libc::c_int
                     {
                         mailimf_string_write_driver(
                             do_write,
@@ -451,20 +451,20 @@ pub unsafe fn mailimf_header_string_write_driver(
                         data,
                         col,
                         word_begin,
-                        p.wrapping_offset_from(word_begin) as libc::c_long as size_t,
+                        p.wrapping_offset_from(word_begin) as libc::c_int as size_t,
                     );
                     state = STATE_SPACE as libc::c_int
                 }
                 _ => {
-                    if p.wrapping_offset_from(word_begin) as libc::c_long + *col as libc::c_long
-                        >= 998i32 as libc::c_long
+                    if p.wrapping_offset_from(word_begin) as libc::c_int + *col as libc::c_int
+                        >= 998i32 as libc::c_int
                     {
                         mailimf_string_write_driver(
                             do_write,
                             data,
                             col,
                             word_begin,
-                            p.wrapping_offset_from(word_begin) as libc::c_long as size_t,
+                            p.wrapping_offset_from(word_begin) as libc::c_int as size_t,
                         );
                         mailimf_string_write_driver(
                             do_write,
@@ -484,8 +484,8 @@ pub unsafe fn mailimf_header_string_write_driver(
         }
     }
     if state == STATE_WORD as libc::c_int {
-        if p.wrapping_offset_from(word_begin) as libc::c_long + *col as libc::c_long
-            >= 72i32 as libc::c_long
+        if p.wrapping_offset_from(word_begin) as libc::c_int + *col as libc::c_int
+            >= 72i32 as libc::c_int
         {
             mailimf_string_write_driver(
                 do_write,
@@ -510,7 +510,7 @@ pub unsafe fn mailimf_header_string_write_driver(
             data,
             col,
             word_begin,
-            p.wrapping_offset_from(word_begin) as libc::c_long as size_t,
+            p.wrapping_offset_from(word_begin) as libc::c_int as size_t,
         );
     }
     return MAILIMF_NO_ERROR as libc::c_int;

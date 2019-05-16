@@ -1,3 +1,5 @@
+use chrono::{Datelike, Local, TimeZone, Timelike};
+
 use crate::clist::*;
 use crate::mailimf_types::*;
 use crate::mailimf_types_helper::*;
@@ -5,23 +7,72 @@ use crate::mailmime_types::*;
 use crate::mailmime_types_helper::*;
 
 pub(crate) use libc::{
-    calloc, close, free, gmtime, gmtime_r, isalpha, isdigit, localtime_r, malloc, memcmp, memcpy,
-    memmove, memset, realloc, snprintf, strcasecmp, strcpy, strdup, strlen, strncasecmp, strncmp,
-    strncpy, time, tm,
+    calloc, close, free, isalpha, isdigit, malloc, memcmp, memcpy, memmove, memset, realloc,
+    strcpy, strlen, strncmp, strncpy,
 };
 
+pub(crate) unsafe fn strcasecmp(s1: *const libc::c_char, s2: *const libc::c_char) -> libc::c_int {
+    let s1 = std::ffi::CStr::from_ptr(s1)
+        .to_string_lossy()
+        .to_lowercase();
+    let s2 = std::ffi::CStr::from_ptr(s2)
+        .to_string_lossy()
+        .to_lowercase();
+    if s1 == s2 {
+        0
+    } else {
+        1
+    }
+}
+
+pub(crate) unsafe fn strncasecmp(
+    s1: *const libc::c_char,
+    s2: *const libc::c_char,
+    n: libc::size_t,
+) -> libc::c_int {
+    let s1 = std::ffi::CStr::from_ptr(s1)
+        .to_string_lossy()
+        .to_lowercase();
+    let s2 = std::ffi::CStr::from_ptr(s2)
+        .to_string_lossy()
+        .to_lowercase();
+    let m1 = std::cmp::min(n, s1.len());
+    let m2 = std::cmp::min(n, s2.len());
+
+    if s1[..m1] == s2[..m2] {
+        0
+    } else {
+        1
+    }
+}
+
+#[cfg(not(windows))]
+pub(crate) use libc::snprintf;
+
+#[cfg(windows)]
+extern "C" {
+    pub(crate) fn snprintf(
+        s: *mut libc::c_char,
+        n: libc::size_t,
+        format: *const libc::c_char,
+        _: ...
+    ) -> libc::c_int;
+}
+
+pub(crate) unsafe fn strdup(s: *const libc::c_char) -> *mut libc::c_char {
+    let slen = libc::strlen(s);
+    let result = libc::malloc(slen + 1);
+    if result.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    libc::memcpy(result, s as *const _, slen + 1);
+    result as *mut _
+}
+
 pub(crate) type size_t = libc::size_t;
-pub(crate) type pid_t = libc::pid_t;
 pub(crate) type time_t = libc::time_t;
 pub(crate) type uint32_t = libc::c_uint;
-pub(crate) type dev_t = libc::dev_t;
-pub(crate) type blkcnt_t = libc::blkcnt_t;
-pub(crate) type blksize_t = libc::blksize_t;
-pub(crate) type gid_t = libc::gid_t;
-pub(crate) type mode_t = libc::mode_t;
-pub(crate) type nlink_t = libc::uint16_t;
-pub(crate) type off_t = libc::off_t;
-pub(crate) type uid_t = libc::uid_t;
 
 pub const MAIL_ERROR_SSL: libc::c_uint = 58;
 pub const MAIL_ERROR_FOLDER: libc::c_uint = 57;
@@ -1602,144 +1653,69 @@ unsafe fn detach_free_common_fields(
     };
 }
 
-unsafe fn detach_resent_field(mut field: *mut mailimf_field) {
-    (*field).fld_type = MAILIMF_FIELD_NONE as libc::c_int;
-    mailimf_field_free(field);
+pub fn mailimf_get_date(t: time_t) -> *mut mailimf_date_time {
+    let lt = Local.timestamp(t, 0);
+
+    let off = (lt.offset().local_minus_utc() / (60 * 60)) * 100;
+
+    unsafe {
+        mailimf_date_time_new(
+            lt.day() as libc::c_int,
+            lt.month() as libc::c_int,
+            lt.year() as libc::c_int,
+            lt.hour() as libc::c_int,
+            lt.minute() as libc::c_int,
+            lt.second() as libc::c_int,
+            off,
+        )
+    }
 }
 
-pub unsafe fn mailimf_get_date(mut t: time_t) -> *mut mailimf_date_time {
-    let mut gmt: tm = tm {
-        tm_sec: 0,
-        tm_min: 0,
-        tm_hour: 0,
-        tm_mday: 0,
-        tm_mon: 0,
-        tm_year: 0,
-        tm_wday: 0,
-        tm_yday: 0,
-        tm_isdst: 0,
-        tm_gmtoff: 0,
-        tm_zone: 0 as *mut libc::c_char,
-    };
-    let mut lt: tm = tm {
-        tm_sec: 0,
-        tm_min: 0,
-        tm_hour: 0,
-        tm_mday: 0,
-        tm_mon: 0,
-        tm_year: 0,
-        tm_wday: 0,
-        tm_yday: 0,
-        tm_isdst: 0,
-        tm_gmtoff: 0,
-        tm_zone: 0 as *mut libc::c_char,
-    };
-    let mut off: libc::c_int = 0;
-    let mut date_time: *mut mailimf_date_time = 0 as *mut mailimf_date_time;
-    if gmtime_r(&mut t, &mut gmt).is_null() {
-        return 0 as *mut mailimf_date_time;
-    }
-    if localtime_r(&mut t, &mut lt).is_null() {
-        return 0 as *mut mailimf_date_time;
-    }
-    off = ((mail_mkgmtime(&mut lt) - mail_mkgmtime(&mut gmt)) * 100i32 as libc::c_long
-        / (60i32 * 60i32) as libc::c_long) as libc::c_int;
-    date_time = mailimf_date_time_new(
-        lt.tm_mday,
-        lt.tm_mon + 1i32,
-        lt.tm_year + 1900i32,
-        lt.tm_hour,
-        lt.tm_min,
-        lt.tm_sec,
-        off,
-    );
-    return date_time;
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+    use std::ffi::CString;
 
-pub unsafe fn mail_mkgmtime(mut tmp: *mut tm) -> time_t {
-    let mut dir: libc::c_int = 0;
-    let mut bits: libc::c_int = 0;
-    let mut saved_seconds: libc::c_int = 0;
-    let mut t: time_t = 0;
-    let mut yourtm: tm = tm {
-        tm_sec: 0,
-        tm_min: 0,
-        tm_hour: 0,
-        tm_mday: 0,
-        tm_mon: 0,
-        tm_year: 0,
-        tm_wday: 0,
-        tm_yday: 0,
-        tm_isdst: 0,
-        tm_gmtoff: 0,
-        tm_zone: 0 as *mut libc::c_char,
-    };
-    let mut mytm: *mut tm = 0 as *mut tm;
-    yourtm = *tmp;
-    saved_seconds = yourtm.tm_sec;
-    yourtm.tm_sec = 0i32;
-    bits = 0i32;
-    t = 1i32 as time_t;
-    while t > 0i32 as libc::c_long {
-        bits += 1;
-        t <<= 1i32
+    #[test]
+    fn test_strcasecmp() {
+        assert_eq!(0, unsafe {
+            strcasecmp(
+                CString::new("hello").unwrap().as_ptr(),
+                CString::new("Hello").unwrap().as_ptr(),
+            )
+        });
     }
-    t = if t < 0i32 as libc::c_long {
-        0i32 as libc::c_long
-    } else {
-        (1i32 as time_t) << bits
-    };
-    if bits > 40i32 {
-        bits = 40i32
-    }
-    loop {
-        mytm = gmtime(&mut t);
-        if mytm.is_null() {
-            return -1i32 as time_t;
-        }
-        dir = tmcomp(mytm, &mut yourtm);
-        if !(dir != 0i32) {
-            break;
-        }
-        let fresh0 = bits;
-        bits = bits - 1;
-        if fresh0 < 0i32 {
-            return -1i32 as time_t;
-        }
-        if bits < 0i32 {
-            t -= 1
-        } else if dir > 0i32 {
-            t -= (1i32 as time_t) << bits
-        } else {
-            t += (1i32 as time_t) << bits
-        }
-    }
-    t += saved_seconds as libc::c_long;
-    return t;
-}
 
-unsafe extern "C" fn tmcomp(mut atmp: *mut tm, mut btmp: *mut tm) -> libc::c_int {
-    let mut result: libc::c_int = 0;
-    result = (*atmp).tm_year - (*btmp).tm_year;
-    if result == 0i32
-        && {
-            result = (*atmp).tm_mon - (*btmp).tm_mon;
-            result == 0i32
-        }
-        && {
-            result = (*atmp).tm_mday - (*btmp).tm_mday;
-            result == 0i32
-        }
-        && {
-            result = (*atmp).tm_hour - (*btmp).tm_hour;
-            result == 0i32
-        }
-        && {
-            result = (*atmp).tm_min - (*btmp).tm_min;
-            result == 0i32
-        }
-    {
-        result = (*atmp).tm_sec - (*btmp).tm_sec
+    #[test]
+    fn test_strncasecmp() {
+        assert_eq!(0, unsafe {
+            strncasecmp(
+                CString::new("helloworld").unwrap().as_ptr(),
+                CString::new("Helloward").unwrap().as_ptr(),
+                4,
+            )
+        });
     }
-    return result;
+
+    #[test]
+    fn test_get_date() {
+        let now_utc = Utc::now();
+
+        let now_local = Local.from_utc_datetime(&now_utc.naive_local());
+        let t_local = now_local.timestamp();
+
+        let converted = unsafe { *mailimf_get_date(t_local as time_t) };
+
+        assert_eq!(converted.dt_day as u32, now_local.day());
+        assert_eq!(converted.dt_month as u32, now_local.month());
+        assert_eq!(converted.dt_year, now_local.year());
+        assert_eq!(converted.dt_hour as u32, now_local.hour());
+        assert_eq!(converted.dt_min as u32, now_local.minute());
+        assert_eq!(converted.dt_sec as u32, now_local.second());
+        assert_eq!(
+            converted.dt_zone,
+            (now_local.offset().local_minus_utc() / (60 * 60)) * 100
+        );
+    }
 }

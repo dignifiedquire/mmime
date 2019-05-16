@@ -840,13 +840,11 @@ pub unsafe fn mailmime_new_empty(
 
 pub unsafe fn mailmime_generate_boundary() -> *mut libc::c_char {
     let mut id: [libc::c_char; 512] = [0; 512];
-    let mut now: time_t = 0;
     let mut name: [libc::c_char; 512] = [0; 512];
-    let mut value: libc::c_long = 0;
-    now = time(0 as *mut time_t);
+    let mut value: libc::c_int = 0;
     let mut rng = thread_rng();
-    let value: libc::c_long = rng.gen();
-
+    let value: libc::c_int = rng.gen();
+    let now = chrono::Utc::now().timestamp();
     snprintf(
         id.as_mut_ptr(),
         512 as libc::size_t,

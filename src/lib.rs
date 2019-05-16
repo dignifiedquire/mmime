@@ -1,5 +1,4 @@
 #![allow(unused_attributes)]
-#![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(mutable_transmutes)]
 #![allow(non_camel_case_types)]
@@ -54,10 +53,7 @@ pub use self::other::*;
 mod tests {
     use super::*;
     use crate::mailmime_types::{mailmime, mailmime_content, mailmime_disposition};
-
-    extern "C" {
-        fn printf(_: *const libc::c_char, _: ...) -> libc::c_int;
-    }
+    use std::ffi::CStr;
 
     #[test]
     fn mailmime_parse_test() {
@@ -113,9 +109,9 @@ mod tests {
         }
         if !(*mime).mm_mime_fields.is_null() {
             if !(*(*(*mime).mm_mime_fields).fld_list).first.is_null() {
-                printf(b"MIME headers begin\n\x00" as *const u8 as *const libc::c_char);
+                print!("MIME headers begin");
                 display_mime_fields((*mime).mm_mime_fields);
-                printf(b"MIME headers end\n\x00" as *const u8 as *const libc::c_char);
+                println!("MIME headers end");
             }
         }
         display_mime_content((*mime).mm_content_type);
@@ -146,9 +142,9 @@ mod tests {
                         .first
                         .is_null()
                     {
-                        printf(b"headers begin\n\x00" as *const u8 as *const libc::c_char);
+                        println!("headers begin");
                         display_fields((*mime).mm_data.mm_message.mm_fields);
-                        printf(b"headers end\n\x00" as *const u8 as *const libc::c_char);
+                        println!("headers end");
                     }
                     if !(*mime).mm_data.mm_message.mm_msg_mime.is_null() {
                         display_mime((*mime).mm_data.mm_message.mm_msg_mime);
@@ -160,11 +156,11 @@ mod tests {
     }
 
     unsafe fn display_mime_content(mut content_type: *mut mailmime_content) {
-        printf(b"type: \x00" as *const u8 as *const libc::c_char);
+        print!("type: ");
         display_mime_type((*content_type).ct_type);
-        printf(
-            b"/%s\n\x00" as *const u8 as *const libc::c_char,
-            (*content_type).ct_subtype,
+        println!(
+            "/{}",
+            CStr::from_ptr((*content_type).ct_subtype).to_str().unwrap()
         );
     }
     unsafe fn display_mime_type(mut type_0: *mut mailmime_type) {
@@ -181,16 +177,13 @@ mod tests {
     unsafe fn display_mime_composite_type(mut ct: *mut mailmime_composite_type) {
         match (*ct).ct_type {
             1 => {
-                printf(b"message\x00" as *const u8 as *const libc::c_char);
+                print!("message");
             }
             2 => {
-                printf(b"multipart\x00" as *const u8 as *const libc::c_char);
+                print!("multipart");
             }
             3 => {
-                printf(
-                    b"%s\x00" as *const u8 as *const libc::c_char,
-                    (*ct).ct_token,
-                );
+                print!("{}", CStr::from_ptr((*ct).ct_token).to_str().unwrap());
             }
             _ => {}
         };
@@ -198,25 +191,22 @@ mod tests {
     unsafe fn display_mime_discrete_type(mut discrete_type: *mut mailmime_discrete_type) {
         match (*discrete_type).dt_type {
             1 => {
-                printf(b"text\x00" as *const u8 as *const libc::c_char);
+                print!("text");
             }
             2 => {
-                printf(b"image\x00" as *const u8 as *const libc::c_char);
+                print!("image");
             }
             3 => {
-                printf(b"audio\x00" as *const u8 as *const libc::c_char);
+                print!("audio");
             }
             4 => {
-                printf(b"video\x00" as *const u8 as *const libc::c_char);
+                print!("video");
             }
             5 => {
-                printf(b"application\x00" as *const u8 as *const libc::c_char);
+                print!("application");
             }
             6 => {
-                printf(
-                    b"%s\x00" as *const u8 as *const libc::c_char,
-                    (*discrete_type).dt_extension,
-                );
+                print!("{}", (*discrete_type).dt_extension as u8 as char);
             }
             _ => {}
         };
@@ -224,15 +214,17 @@ mod tests {
     unsafe fn display_mime_data(mut data: *mut mailmime_data) {
         match (*data).dt_type {
             0 => {
-                printf(
-                    b"data : %u bytes\n\x00" as *const u8 as *const libc::c_char,
+                println!(
+                    "data : {} bytes",
                     (*data).dt_data.dt_text.dt_length as libc::c_uint,
                 );
             }
             1 => {
-                printf(
-                    b"data (file) : %s\n\x00" as *const u8 as *const libc::c_char,
-                    (*data).dt_data.dt_filename,
+                println!(
+                    "data (file) : {}",
+                    CStr::from_ptr((*data).dt_data.dt_filename)
+                        .to_str()
+                        .unwrap()
                 );
             }
             _ => {}
@@ -241,9 +233,11 @@ mod tests {
     unsafe fn display_mime_dsp_parm(mut param: *mut mailmime_disposition_parm) {
         match (*param).pa_type {
             0 => {
-                printf(
-                    b"filename: %s\n\x00" as *const u8 as *const libc::c_char,
-                    (*param).pa_data.pa_filename,
+                println!(
+                    "filename: {}",
+                    CStr::from_ptr((*param).pa_data.pa_filename)
+                        .to_str()
+                        .unwrap()
                 );
             }
             _ => {}
@@ -270,9 +264,9 @@ mod tests {
     unsafe fn display_mime_field(mut field: *mut mailmime_field) {
         match (*field).fld_type {
             1 => {
-                printf(b"content-type: \x00" as *const u8 as *const libc::c_char);
+                print!("content-type: ");
                 display_mime_content((*field).fld_data.fld_content);
-                printf(b"\n\x00" as *const u8 as *const libc::c_char);
+                println!("");
             }
             6 => {
                 display_mime_disposition((*field).fld_data.fld_disposition);
@@ -299,8 +293,8 @@ mod tests {
         }
     }
     unsafe fn display_date_time(mut d: *mut mailimf_date_time) {
-        printf(
-            b"%02i/%02i/%i %02i:%02i:%02i %+04i\x00" as *const u8 as *const libc::c_char,
+        print!(
+            "{:02}/{:02}/{:02} {:02}:{:02}:{:02} +{:04}",
             (*d).dt_day,
             (*d).dt_month,
             (*d).dt_year,
@@ -315,15 +309,12 @@ mod tests {
     }
     unsafe fn display_mailbox(mut mb: *mut mailimf_mailbox) {
         if !(*mb).mb_display_name.is_null() {
-            printf(
-                b"%s \x00" as *const u8 as *const libc::c_char,
-                (*mb).mb_display_name,
+            print!(
+                "{}",
+                CStr::from_ptr((*mb).mb_display_name).to_str().unwrap()
             );
         }
-        printf(
-            b"<%s>\x00" as *const u8 as *const libc::c_char,
-            (*mb).mb_addr_spec,
-        );
+        print!("<{}>", CStr::from_ptr((*mb).mb_addr_spec).to_str().unwrap());
     }
     unsafe fn display_mailbox_list(mut mb_list: *mut mailimf_mailbox_list) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
@@ -343,7 +334,7 @@ mod tests {
             }
             .is_null()
             {
-                printf(b", \x00" as *const u8 as *const libc::c_char);
+                print!(", ");
             }
             cur = if !cur.is_null() {
                 (*cur).next
@@ -354,9 +345,9 @@ mod tests {
     }
     unsafe fn display_group(mut group: *mut mailimf_group) {
         let mut cur: *mut clistiter = 0 as *mut clistiter;
-        printf(
-            b"%s: \x00" as *const u8 as *const libc::c_char,
-            (*group).grp_display_name,
+        print!(
+            "{}: ",
+            CStr::from_ptr((*group).grp_display_name).to_str().unwrap()
         );
         cur = (*(*(*group).grp_mb_list).mb_list).first;
         while !cur.is_null() {
@@ -373,7 +364,7 @@ mod tests {
                 0 as *mut clistcell
             }
         }
-        printf(b"; \x00" as *const u8 as *const libc::c_char);
+        print!("; ");
     }
     unsafe fn display_address(mut a: *mut mailimf_address) {
         match (*a).ad_type {
@@ -404,7 +395,7 @@ mod tests {
             }
             .is_null()
             {
-                printf(b", \x00" as *const u8 as *const libc::c_char);
+                print!(", ");
             }
             cur = if !cur.is_null() {
                 (*cur).next
@@ -423,42 +414,41 @@ mod tests {
         display_address_list((*cc).cc_addr_list);
     }
     unsafe fn display_subject(mut subject: *mut mailimf_subject) {
-        printf(
-            b"%s\x00" as *const u8 as *const libc::c_char,
-            (*subject).sbj_value,
-        );
+        print!("{}", CStr::from_ptr((*subject).sbj_value).to_str().unwrap());
     }
     unsafe fn display_field(mut field: *mut mailimf_field) {
         match (*field).fld_type {
             9 => {
-                printf(b"Date: \x00" as *const u8 as *const libc::c_char);
+                print!("Date: ");
                 display_orig_date((*field).fld_data.fld_orig_date);
-                printf(b"\n\x00" as *const u8 as *const libc::c_char);
+                println!("");
             }
             10 => {
-                printf(b"From: \x00" as *const u8 as *const libc::c_char);
+                print!("From: ");
                 display_from((*field).fld_data.fld_from);
-                printf(b"\n\x00" as *const u8 as *const libc::c_char);
+                println!("");
             }
             13 => {
-                printf(b"To: \x00" as *const u8 as *const libc::c_char);
+                print!("To: ");
                 display_to((*field).fld_data.fld_to);
-                printf(b"\n\x00" as *const u8 as *const libc::c_char);
+                println!("");
             }
             14 => {
-                printf(b"Cc: \x00" as *const u8 as *const libc::c_char);
+                print!("Cc: ");
                 display_cc((*field).fld_data.fld_cc);
-                printf(b"\n\x00" as *const u8 as *const libc::c_char);
+                println!("");
             }
             19 => {
-                printf(b"Subject: \x00" as *const u8 as *const libc::c_char);
+                print!("Subject: ");
                 display_subject((*field).fld_data.fld_subject);
-                printf(b"\n\x00" as *const u8 as *const libc::c_char);
+                println!("");
             }
             16 => {
-                printf(
-                    b"Message-ID: %s\n\x00" as *const u8 as *const libc::c_char,
-                    (*(*field).fld_data.fld_message_id).mid_value,
+                println!(
+                    "Message-ID: {}",
+                    CStr::from_ptr((*(*field).fld_data.fld_message_id).mid_value)
+                        .to_str()
+                        .unwrap(),
                 );
             }
             _ => {}
