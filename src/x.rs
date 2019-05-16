@@ -15,15 +15,6 @@ pub type off_t = libc::off_t;
 pub type uid_t = libc::uid_t;
 
 extern "C" {
-    pub fn munmap(_: *mut libc::c_void, _: size_t) -> libc::c_int;
-    pub fn mmap(
-        _: *mut libc::c_void,
-        _: size_t,
-        _: libc::c_int,
-        _: libc::c_int,
-        _: libc::c_int,
-        _: off_t,
-    ) -> *mut libc::c_void;
     pub fn getpid() -> pid_t;
     pub fn random() -> libc::c_long;
     pub fn pthread_mutex_unlock(_: *mut pthread_mutex_t) -> libc::c_int;

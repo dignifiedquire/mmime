@@ -1,3 +1,5 @@
+use std::ffi::CStr;
+
 use crate::clist::*;
 use crate::mailimf_write_generic::*;
 use crate::mailmime::*;
@@ -1493,11 +1495,10 @@ pub unsafe fn mailmime_data_write_driver(
     mut mime_data: *mut mailmime_data,
     mut istext: libc::c_int,
 ) -> libc::c_int {
-    let mut current_block: u64;
+    let mut current_block: u64 = 0;
     let mut fd: libc::c_int = 0;
     let mut r: libc::c_int = 0;
     let mut text: *mut libc::c_char = 0 as *mut libc::c_char;
-    let mut buf: *mut libc::stat = std::ptr::null_mut();
 
     let mut res: libc::c_int = 0;
     match (*mime_data).dt_type {
@@ -1529,91 +1530,72 @@ pub unsafe fn mailmime_data_write_driver(
             }
         }
         1 => {
-            fd = open((*mime_data).dt_data.dt_filename, 0i32);
-            if fd < 0i32 {
-                res = MAILIMF_ERROR_FILE as libc::c_int;
-                current_block = 10275258781883576179;
-            } else {
-                r = fstat(fd, buf);
-                if r < 0i32 {
-                    res = MAILIMF_ERROR_FILE as libc::c_int;
-                    current_block = 5221028069996397600;
-                } else {
-                    if (*buf).st_size != 0i32 as libc::c_longlong {
-                        text = mmap(
-                            0 as *mut libc::c_void,
-                            (*buf).st_size as size_t,
-                            0x1i32,
-                            0x2i32,
-                            fd,
-                            0i32 as off_t,
-                        ) as *mut libc::c_char;
-                        if text == -1i32 as *mut libc::c_void as *mut libc::c_char {
-                            res = MAILIMF_ERROR_FILE as libc::c_int;
-                            current_block = 5221028069996397600;
+            let filename = CStr::from_ptr((*mime_data).dt_data.dt_filename)
+                .to_str()
+                .unwrap();
+            if let Ok(file) = std::fs::File::open(filename) {
+                if let Ok(mut text) = memmap::MmapOptions::new().map_copy(&file) {
+                    if 0 != (*mime_data).dt_encoded {
+                        r = mailimf_string_write_driver(
+                            do_write,
+                            data,
+                            col,
+                            text.as_ptr() as *const _,
+                            text.len(),
+                        );
+                        if r != MAILIMF_NO_ERROR as libc::c_int {
+                            res = r;
+                            current_block = 1055471768422549395;
                         } else {
-                            if 0 != (*mime_data).dt_encoded {
-                                r = mailimf_string_write_driver(
-                                    do_write,
-                                    data,
-                                    col,
-                                    text,
-                                    (*buf).st_size as size_t,
-                                );
-                                if r != MAILIMF_NO_ERROR as libc::c_int {
-                                    res = r;
-                                    current_block = 1055471768422549395;
-                                } else {
-                                    current_block = 1538046216550696469;
-                                }
-                            } else {
-                                r = mailmime_text_content_write_driver(
-                                    do_write,
-                                    data,
-                                    col,
-                                    (*mime_data).dt_encoding,
-                                    istext,
-                                    text,
-                                    (*buf).st_size as size_t,
-                                );
-                                if r != MAILIMF_NO_ERROR as libc::c_int {
-                                    res = r;
-                                    current_block = 1055471768422549395;
-                                } else {
-                                    current_block = 1538046216550696469;
-                                }
-                            }
-                            match current_block {
-                                1055471768422549395 => {
-                                    munmap(text as *mut libc::c_void, (*buf).st_size as size_t);
-                                    current_block = 5221028069996397600;
-                                }
-                                _ => {
-                                    munmap(text as *mut libc::c_void, (*buf).st_size as size_t);
-                                    current_block = 9853141518545631134;
-                                }
-                            }
+                            current_block = 1538046216550696469;
                         }
                     } else {
-                        current_block = 9853141518545631134;
-                    }
-                    match current_block {
-                        5221028069996397600 => {}
-                        _ => {
-                            close(fd);
-                            if r != MAILIMF_NO_ERROR as libc::c_int {
-                                return r;
-                            }
-                            current_block = 10891380440665537214;
+                        r = mailmime_text_content_write_driver(
+                            do_write,
+                            data,
+                            col,
+                            (*mime_data).dt_encoding,
+                            istext,
+                            text.as_ptr() as *const _,
+                            text.len(),
+                        );
+                        if r != MAILIMF_NO_ERROR as libc::c_int {
+                            res = r;
+                            current_block = 1055471768422549395;
+                        } else {
+                            current_block = 1538046216550696469;
                         }
                     }
+                    match current_block {
+                        1055471768422549395 => {
+                            current_block = 5221028069996397600;
+                        }
+                        _ => {
+                            current_block = 9853141518545631134;
+                        }
+                    }
+                } else {
+                    res = MAILIMF_ERROR_FILE as libc::c_int;
+                    current_block = 5221028069996397600;
                 }
                 match current_block {
-                    10891380440665537214 => {}
+                    5221028069996397600 => {}
                     _ => {
                         close(fd);
-                        current_block = 10275258781883576179;
+                        if r != MAILIMF_NO_ERROR as libc::c_int {
+                            return r;
+                        }
+                        current_block = 10891380440665537214;
                     }
+                }
+            } else {
+                res = MAILIMF_ERROR_FILE as libc::c_int;
+                current_block = 10275258781883576179;
+            }
+            match current_block {
+                10891380440665537214 => {}
+                _ => {
+                    current_block = 10275258781883576179;
                 }
             }
             match current_block {
