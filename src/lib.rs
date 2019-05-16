@@ -1,5 +1,4 @@
 #![allow(unused_attributes)]
-#![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(mutable_transmutes)]
 #![allow(non_camel_case_types)]

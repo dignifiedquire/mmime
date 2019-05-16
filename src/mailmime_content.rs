@@ -946,7 +946,7 @@ unsafe fn mailmime_body_part_dash2_close_parse(
     }
     *indx = cur_token;
     *result = begin_text;
-    *result_size = end_text.wrapping_offset_from(begin_text) as libc::c_long as size_t;
+    *result_size = end_text.wrapping_offset_from(begin_text) as size_t;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
 unsafe fn mailmime_multipart_close_parse(
@@ -1181,7 +1181,7 @@ unsafe fn mailmime_body_part_dash2_transport_crlf_parse(
     }
     *indx = cur_token;
     *result = begin_text;
-    *result_size = end_text.wrapping_offset_from(begin_text) as libc::c_long as size_t;
+    *result_size = end_text.wrapping_offset_from(begin_text) as size_t;
     return MAILIMF_NO_ERROR as libc::c_int;
 }
 unsafe fn mailmime_preamble_parse(

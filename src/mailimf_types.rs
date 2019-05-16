@@ -31,7 +31,7 @@ use crate::other::*;
   - zone (this is the decimal value that we can read, for example:
     for "-0200", the value is -200)
 */
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(C)]
 pub struct mailimf_date_time {
     pub dt_day: libc::c_int,
