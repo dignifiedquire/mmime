@@ -59,6 +59,7 @@ extern "C" {
         format: *const libc::c_char,
         _: ...
     ) -> libc::c_int;
+    #[link_name = "strdup"]
     pub(crate) fn strdup(s: *const libc::c_char) -> *mut libc::c_char;
 }
 
