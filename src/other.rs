@@ -20,16 +20,16 @@ pub(crate) use libc::strncasecmp;
 
 #[cfg(windows)]
 extern "C" {
-    #[link_name = "_snprintf"]
+    //#[link_name = "_snprintf"]
     pub(crate) fn snprintf(
         s: *mut libc::c_char,
         n: libc::size_t,
         format: *const libc::c_char,
         _: ...
     ) -> libc::c_int;
-    #[link_name = "_stricmp"]
+    //#[link_name = "_stricmp"]
     pub(crate) fn strcasecmp(s1: *const libc::c_char, s2: *const libc::c_char) -> libc::c_int;
-    #[link_name = "_strincmp"]
+    //#[link_name = "_strincmp"]
     pub(crate) fn strncasecmp(
         s1: *const libc::c_char,
         s2: *const libc::c_char,
