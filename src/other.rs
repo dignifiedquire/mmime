@@ -1,3 +1,5 @@
+use std::ffi::CStr;
+
 use crate::clist::*;
 use crate::mailimf_types::*;
 use crate::mailimf_types_helper::*;
@@ -6,9 +8,34 @@ use crate::mailmime_types_helper::*;
 
 pub(crate) use libc::{
     calloc, close, free, gmtime, gmtime_r, isalpha, isdigit, localtime_r, malloc, memcmp, memcpy,
-    memmove, memset, realloc, snprintf, strcasecmp, strcpy, strdup, strlen, strncasecmp, strncmp,
-    strncpy, time, tm,
+    memmove, memset, realloc, snprintf, strcpy, strdup, strlen, strncmp, strncpy, time, tm,
 };
+
+pub(crate) unsafe fn strcasecmp(s1: *const libc::c_char, s2: *const libc::c_char) -> libc::c_int {
+    let a = CStr::from_ptr(s1).to_str().unwrap().to_lowercase();
+    let b = CStr::from_ptr(s2).to_str().unwrap().to_lowercase();
+
+    if a == b {
+        0
+    } else {
+        (a.len() - b.len()) as libc::c_int
+    }
+}
+
+pub(crate) unsafe fn strncasecmp(
+    s1: *const libc::c_char,
+    s2: *const libc::c_char,
+    n: libc::size_t,
+) -> libc::c_int {
+    let a = CStr::from_ptr(s1).to_str().unwrap()[..n].to_lowercase();
+    let b = CStr::from_ptr(s2).to_str().unwrap()[..n].to_lowercase();
+
+    if a == b {
+        0
+    } else {
+        (a.len() - b.len()) as libc::c_int
+    }
+}
 
 pub(crate) type size_t = libc::size_t;
 pub(crate) type pid_t = libc::pid_t;
@@ -1742,4 +1769,31 @@ unsafe extern "C" fn tmcomp(mut atmp: *mut tm, mut btmp: *mut tm) -> libc::c_int
         result = (*atmp).tm_sec - (*btmp).tm_sec
     }
     return result;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ffi::CString;
+
+    #[test]
+    fn test_strcasecmp() {
+        assert_eq!(0, unsafe {
+            strcasecmp(
+                CString::new("hello").unwrap().as_ptr(),
+                CString::new("Hello").unwrap().as_ptr(),
+            )
+        });
+    }
+
+    #[test]
+    fn test_strncasecmp() {
+        assert_eq!(0, unsafe {
+            strncasecmp(
+                CString::new("helloworld").unwrap().as_ptr(),
+                CString::new("Helloward").unwrap().as_ptr(),
+                4,
+            )
+        });
+    }
 }
