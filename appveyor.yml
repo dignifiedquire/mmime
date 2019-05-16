@@ -1,16 +1,12 @@
 environment:
   matrix:
     # MinGW
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      TARGET: i686-pc-windows-gnu
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      TARGET: x86_64-pc-windows-gnu
+    - TARGET: i686-pc-windows-gnu
+    - TARGET: x86_64-pc-windows-gnu
 
     # MSVC
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      TARGET: i686-pc-windows-msvc
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      TARGET: x86_64-pc-windows-msvc
+    - TARGET: i686-pc-windows-msvc
+    - TARGET: x86_64-pc-windows-msvc
 
 
 install:
