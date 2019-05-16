@@ -8,6 +8,4 @@ license = "MIT"
 [dependencies]
 libc = "0.2.54"
 c2rust-bitfields = "0.1.0"
-
-[build-dependencies]
-cc = "1.0.36"
+charset = "0.1.2"
