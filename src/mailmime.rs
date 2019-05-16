@@ -8,7 +8,7 @@ use crate::mailimf_types::*;
 use crate::mailmime_decode::*;
 use crate::mailmime_disposition::*;
 use crate::mailmime_types::*;
-use crate::x::*;
+use crate::other::*;
 
 pub const MAILMIME_COMPOSITE_TYPE_EXTENSION: libc::c_uint = 3;
 pub const MAILMIME_COMPOSITE_TYPE_MULTIPART: libc::c_uint = 2;

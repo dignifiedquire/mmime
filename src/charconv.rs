@@ -1,7 +1,6 @@
+use crate::other::*;
 use libc;
 use std::ffi::{CStr, CString};
-
-use crate::x::*;
 
 pub const MAIL_CHARCONV_ERROR_CONV: libc::c_uint = 3;
 pub const MAIL_CHARCONV_ERROR_MEMORY: libc::c_uint = 2;

@@ -5,7 +5,7 @@ use crate::clist::*;
 use crate::mailimf::*;
 use crate::mailmime::*;
 use crate::mailmime_types::*;
-use crate::x::*;
+use crate::other::*;
 
 pub const MAILMIME_DISPOSITION_TYPE_EXTENSION: libc::c_uint = 3;
 pub const MAILMIME_DISPOSITION_TYPE_ATTACHMENT: libc::c_uint = 2;

@@ -5,7 +5,7 @@ use crate::mailmime::*;
 use crate::mailmime_types::*;
 use crate::mailmime_types_helper::*;
 use crate::mmapstring::*;
-use crate::x::*;
+use crate::other::*;
 
 pub const MAILMIME_DEFAULT_TYPE_TEXT_PLAIN: libc::c_uint = 0;
 pub const MULTIPART_NEXT_STATE_2: libc::c_uint = 2;

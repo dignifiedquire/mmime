@@ -1,7 +1,7 @@
 use crate::mailmime_types::*;
 use crate::mailmime_write_generic::*;
 use crate::mmapstring::*;
-use crate::x::*;
+use crate::other::*;
 
 unsafe fn do_write(
     mut data: *mut libc::c_void,

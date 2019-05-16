@@ -6,7 +6,7 @@ use crate::mailimf::*;
 use crate::mailmime_content::*;
 use crate::mailmime_types::*;
 use crate::mmapstring::*;
-use crate::x::*;
+use crate::other::*;
 
 pub const MAIL_CHARCONV_ERROR_CONV: libc::c_uint = 3;
 pub const MAIL_CHARCONV_ERROR_UNKNOWN_CHARSET: libc::c_uint = 1;

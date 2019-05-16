@@ -6,7 +6,7 @@ use crate::mailmime::*;
 use crate::mailmime_content::*;
 use crate::mailmime_types::*;
 use crate::mailmime_types_helper::*;
-use crate::x::*;
+use crate::other::*;
 
 pub const STATE_INIT: libc::c_uint = 0;
 pub const STATE_SPACE_CR: libc::c_uint = 3;

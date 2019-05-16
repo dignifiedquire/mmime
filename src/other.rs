@@ -3,7 +3,25 @@ use crate::mailimf_types::*;
 use crate::mailimf_types_helper::*;
 use crate::mailmime_types::*;
 use crate::mailmime_types_helper::*;
-use crate::x::*;
+
+pub(crate) use libc::{
+    calloc, close, free, gmtime, gmtime_r, isalpha, isdigit, localtime_r, malloc, memcmp, memcpy,
+    memmove, memset, realloc, snprintf, strcasecmp, strcpy, strdup, strlen, strncasecmp, strncmp,
+    strncpy, time, tm,
+};
+
+pub(crate) type size_t = libc::size_t;
+pub(crate) type pid_t = libc::pid_t;
+pub(crate) type time_t = libc::time_t;
+pub(crate) type uint32_t = libc::c_uint;
+pub(crate) type dev_t = libc::dev_t;
+pub(crate) type blkcnt_t = libc::blkcnt_t;
+pub(crate) type blksize_t = libc::blksize_t;
+pub(crate) type gid_t = libc::gid_t;
+pub(crate) type mode_t = libc::mode_t;
+pub(crate) type nlink_t = libc::uint16_t;
+pub(crate) type off_t = libc::off_t;
+pub(crate) type uid_t = libc::uid_t;
 
 pub const MAIL_ERROR_SSL: libc::c_uint = 58;
 pub const MAIL_ERROR_FOLDER: libc::c_uint = 57;
@@ -76,15 +94,6 @@ pub const MAILIMF_ERROR_INVAL: libc::c_uint = 3;
 pub const MAILIMF_ERROR_MEMORY: libc::c_uint = 2;
 pub const MAILIMF_ERROR_PARSE: libc::c_uint = 1;
 pub const MAILIMF_NO_ERROR: libc::c_uint = 0;
-
-pub use libc::{
-    atoi, calloc, close, closedir, exit, fclose, fgets, fopen, fread, free, fseek, fstat, ftell,
-    fwrite, gmtime, gmtime_r, isalpha, isdigit, localtime, localtime_r, malloc, memcmp, memcpy,
-    memmove, memset, mkdir, open, opendir, printf, read, readdir, realloc, remove, sleep, snprintf,
-    sprintf, sscanf, strcasecmp, strcat, strchr, strcmp, strcpy, strcspn, strdup, strlen,
-    strncasecmp, strncmp, strncpy, strrchr, strspn, strstr, strtol, system, time, tm,
-    tolower as __tolower, toupper as __toupper, usleep, write,
-};
 
 pub unsafe fn mailprivacy_prepare_mime(mut mime: *mut mailmime) {
     let mut cur: *mut clistiter = 0 as *mut clistiter;

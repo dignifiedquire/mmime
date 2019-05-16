@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 use libc;
 
 use crate::chash::*;
-use crate::x::*;
+use crate::other::*;
 
 lazy_static! {
     static ref mmapstring_lock: Mutex<()> = Mutex::new(());

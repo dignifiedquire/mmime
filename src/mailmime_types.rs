@@ -3,7 +3,7 @@ use libc;
 use crate::clist::*;
 use crate::mailimf_types::*;
 use crate::mmapstring::*;
-use crate::x::*;
+use crate::other::*;
 
 pub const MAILMIME_MECHANISM_TOKEN: libc::c_uint = 6;
 pub const MAILMIME_MECHANISM_BASE64: libc::c_uint = 5;

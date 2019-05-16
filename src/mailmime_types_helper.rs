@@ -1,10 +1,11 @@
 use libc;
+use rand::{thread_rng, Rng};
 
 use crate::clist::*;
 use crate::mailimf_types::*;
 use crate::mailmime::*;
 use crate::mailmime_types::*;
-use crate::x::*;
+use crate::other::*;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -843,15 +844,16 @@ pub unsafe fn mailmime_generate_boundary() -> *mut libc::c_char {
     let mut name: [libc::c_char; 512] = [0; 512];
     let mut value: libc::c_long = 0;
     now = time(0 as *mut time_t);
-    value = random();
-    libc::gethostname(name.as_mut_ptr(), 512);
+    let mut rng = thread_rng();
+    let value: libc::c_long = rng.gen();
+
     snprintf(
         id.as_mut_ptr(),
-        512i32 as libc::size_t,
+        512 as libc::size_t,
         b"%llx_%lx_%x\x00" as *const u8 as *const libc::c_char,
         now as libc::c_longlong,
         value,
-        getpid(),
+        std::process::id(),
     );
     return strdup(id.as_mut_ptr());
 }

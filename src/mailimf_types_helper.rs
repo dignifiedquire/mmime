@@ -1,6 +1,6 @@
 use crate::clist::*;
 use crate::mailimf_types::*;
-use crate::x::*;
+use crate::other::*;
 
 /*
   this function creates a new mailimf_fields structure with no fields

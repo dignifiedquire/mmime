@@ -1,7 +1,7 @@
 use libc;
 
 use crate::clist::*;
-use crate::x::*;
+use crate::other::*;
 
 /*
   IMPORTANT NOTE:

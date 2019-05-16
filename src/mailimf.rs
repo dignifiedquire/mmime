@@ -6,7 +6,7 @@ use crate::mailimf_types::*;
 use crate::mailmime_decode::*;
 use crate::mailmime_types::*;
 use crate::mmapstring::*;
-use crate::x::*;
+use crate::other::*;
 
 pub const UNSTRUCTURED_START: libc::c_uint = 0;
 pub const UNSTRUCTURED_LF: libc::c_uint = 2;

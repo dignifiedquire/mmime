@@ -1,6 +1,6 @@
 use crate::clist::*;
 use crate::mailimf_types::*;
-use crate::x::*;
+use crate::other::*;
 
 pub const STATE_WORD: libc::c_uint = 1;
 pub const STATE_SPACE: libc::c_uint = 2;
