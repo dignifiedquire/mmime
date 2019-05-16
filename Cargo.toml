@@ -3,7 +3,14 @@ name = "mmime"
 version = "0.1.0"
 authors = ["dignifiedquire <dignifiedquire@users.noreply.github.com>"]
 edition = "2018"
-license = "MIT"
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/dignifiedquire/mmime"
+repository = "https://github.com/dignifiedquire/mmime"
+readme = "README.md"
+
+
+keywords = ["mail", "mim", "email", "imap", "smtp"]
+categories = ["std", "email"]
 
 [dependencies]
 libc = "0.2.54"
