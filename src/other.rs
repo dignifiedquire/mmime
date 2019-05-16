@@ -30,9 +30,16 @@ pub(crate) unsafe fn strncasecmp(
     s2: *const libc::c_char,
     n: libc::size_t,
 ) -> libc::c_int {
-    let s1 = std::ffi::CStr::from_ptr(s1).to_string_lossy()[..n].to_lowercase();
-    let s2 = std::ffi::CStr::from_ptr(s2).to_string_lossy()[..n].to_lowercase();
-    if s1 == s2 {
+    let s1 = std::ffi::CStr::from_ptr(s1)
+        .to_string_lossy()
+        .to_lowercase();
+    let s2 = std::ffi::CStr::from_ptr(s2)
+        .to_string_lossy()
+        .to_lowercase();
+    let m1 = std::cmp::min(n, s1.len());
+    let m2 = std::cmp::min(n, s2.len());
+
+    if s1[..m1] == s2[..m2] {
         0
     } else {
         1
