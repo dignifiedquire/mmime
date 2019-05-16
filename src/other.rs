@@ -48,8 +48,6 @@ pub(crate) unsafe fn strncasecmp(
 
 #[cfg(not(windows))]
 pub(crate) use libc::snprintf;
-#[cfg(not(windows))]
-pub(crate) use libc::strdup;
 
 #[cfg(windows)]
 extern "C" {
@@ -59,8 +57,17 @@ extern "C" {
         format: *const libc::c_char,
         _: ...
     ) -> libc::c_int;
-    #[link_name = "strdup"]
-    pub(crate) fn strdup(s: *const libc::c_char) -> *mut libc::c_char;
+}
+
+pub(crate) unsafe fn strdup(s: *const libc::c_char) -> *mut libc::c_char {
+    let slen = libc::strlen(s);
+    let result = libc::malloc(slen + 1);
+    if result.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    libc::memcpy(result, s as *const _, slen + 1);
+    result as *mut _
 }
 
 pub(crate) type size_t = libc::size_t;
