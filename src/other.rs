@@ -11,29 +11,44 @@ pub(crate) use libc::{
     strcpy, strdup, strlen, strncmp, strncpy,
 };
 
+pub(crate) unsafe fn strcasecmp(s1: *const libc::c_char, s2: *const libc::c_char) -> libc::c_int {
+    let s1 = std::ffi::CStr::from_ptr(s1)
+        .to_string_lossy()
+        .to_lowercase();
+    let s2 = std::ffi::CStr::from_ptr(s2)
+        .to_string_lossy()
+        .to_lowercase();
+    if s1 == s2 {
+        0
+    } else {
+        1
+    }
+}
+
+pub(crate) unsafe fn strncasecmp(
+    s1: *const libc::c_char,
+    s2: *const libc::c_char,
+    n: libc::size_t,
+) -> libc::c_int {
+    let s1 = std::ffi::CStr::from_ptr(s1).to_string_lossy()[..n].to_lowercase();
+    let s2 = std::ffi::CStr::from_ptr(s2).to_string_lossy()[..n].to_lowercase();
+    if s1 == s2 {
+        0
+    } else {
+        1
+    }
+}
+
 #[cfg(not(windows))]
 pub(crate) use libc::snprintf;
-#[cfg(not(windows))]
-pub(crate) use libc::strcasecmp;
-#[cfg(not(windows))]
-pub(crate) use libc::strncasecmp;
 
 #[cfg(windows)]
 extern "C" {
-    //#[link_name = "_snprintf"]
     pub(crate) fn snprintf(
         s: *mut libc::c_char,
         n: libc::size_t,
         format: *const libc::c_char,
         _: ...
-    ) -> libc::c_int;
-    //#[link_name = "_stricmp"]
-    pub(crate) fn strcasecmp(s1: *const libc::c_char, s2: *const libc::c_char) -> libc::c_int;
-    //#[link_name = "_strincmp"]
-    pub(crate) fn strncasecmp(
-        s1: *const libc::c_char,
-        s2: *const libc::c_char,
-        n: libc::size_t,
     ) -> libc::c_int;
 }
 
