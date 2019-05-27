@@ -71,7 +71,6 @@ pub(crate) unsafe fn strdup(s: *const libc::c_char) -> *mut libc::c_char {
 }
 
 pub(crate) type size_t = libc::size_t;
-pub(crate) type time_t = libc::time_t;
 pub(crate) type uint32_t = libc::c_uint;
 
 pub const MAIL_ERROR_SSL: libc::c_uint = 58;
@@ -1653,7 +1652,7 @@ unsafe fn detach_free_common_fields(
     };
 }
 
-pub fn mailimf_get_date(t: time_t) -> *mut mailimf_date_time {
+pub fn mailimf_get_date(t: i64) -> *mut mailimf_date_time {
     let lt = Local.timestamp(t, 0);
 
     let off = (lt.offset().local_minus_utc() / (60 * 60)) * 100;
@@ -1705,7 +1704,7 @@ mod tests {
         let now_local = Local.from_utc_datetime(&now_utc.naive_local());
         let t_local = now_local.timestamp();
 
-        let converted = unsafe { *mailimf_get_date(t_local as time_t) };
+        let converted = unsafe { *mailimf_get_date(t_local as i64) };
 
         assert_eq!(converted.dt_day as u32, now_local.day());
         assert_eq!(converted.dt_month as u32, now_local.month());
