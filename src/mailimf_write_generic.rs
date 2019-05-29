@@ -1589,7 +1589,7 @@ unsafe fn mailimf_date_time_write_driver(
         (*date_time).dt_month,
         (*date_time).dt_day,
     );
-    snprintf(
+    snprintf_s(
         date_str.as_mut_ptr(),
         256i32 as libc::size_t,
         b"%s, %i %s %i %02i:%02i:%02i %+05i\x00" as *const u8 as *const libc::c_char,
