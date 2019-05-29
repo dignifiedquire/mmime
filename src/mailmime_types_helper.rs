@@ -845,7 +845,7 @@ pub unsafe fn mailmime_generate_boundary() -> *mut libc::c_char {
     let mut rng = thread_rng();
     let value: libc::c_int = rng.gen();
     let now = chrono::Utc::now().timestamp();
-    snprintf_s(
+    snprintf(
         id.as_mut_ptr(),
         512 as libc::size_t,
         b"%llx_%lx_%x\x00" as *const u8 as *const libc::c_char,

@@ -335,7 +335,7 @@ unsafe fn mailmime_disposition_param_write_driver(
                 .wrapping_add(strlen((*param).pa_data.pa_read_date))
         }
         4 => {
-            snprintf_s(
+            snprintf(
                 sizestr.as_mut_ptr(),
                 20i32 as libc::size_t,
                 b"%lu\x00" as *const u8 as *const libc::c_char,
@@ -547,7 +547,7 @@ unsafe fn mailmime_version_write_driver(
     if r != MAILIMF_NO_ERROR as libc::c_int {
         return r;
     }
-    snprintf_s(
+    snprintf(
         versionstr.as_mut_ptr(),
         40i32 as libc::size_t,
         b"%i.%i\x00" as *const u8 as *const libc::c_char,
@@ -1812,7 +1812,7 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                                 return r;
                             }
                             start = text.offset(i as isize).offset(1isize);
-                            snprintf_s(
+                            snprintf(
                                 hexstr.as_mut_ptr(),
                                 6i32 as libc::size_t,
                                 b"=%02X\x00" as *const u8 as *const libc::c_char,
@@ -1840,7 +1840,7 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                             return r;
                         }
                         start = text.offset(i as isize).offset(1isize);
-                        snprintf_s(
+                        snprintf(
                             hexstr.as_mut_ptr(),
                             6i32 as libc::size_t,
                             b"=%02X\x00" as *const u8 as *const libc::c_char,
@@ -1887,7 +1887,7 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                         return r;
                     }
                     start = text.offset(i as isize);
-                    snprintf_s(
+                    snprintf(
                         hexstr.as_mut_ptr(),
                         6i32 as libc::size_t,
                         b"=%02X\x00" as *const u8 as *const libc::c_char,
@@ -1917,7 +1917,7 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                         return r;
                     }
                     start = text.offset(i as isize).offset(1isize);
-                    snprintf_s(
+                    snprintf(
                         hexstr.as_mut_ptr(),
                         6i32 as libc::size_t,
                         b"=%02X\r\n\x00" as *const u8 as *const libc::c_char,
@@ -1949,7 +1949,7 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                         return r;
                     }
                     start = text.offset(i as isize).offset(1isize);
-                    snprintf_s(
+                    snprintf(
                         hexstr.as_mut_ptr(),
                         6i32 as libc::size_t,
                         b"=%02X\r\n\x00" as *const u8 as *const libc::c_char,
@@ -1974,7 +1974,7 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                         return r;
                     }
                     start = text.offset(i as isize).offset(1isize);
-                    snprintf_s(
+                    snprintf(
                         hexstr.as_mut_ptr(),
                         6i32 as libc::size_t,
                         b"%c=%02X\x00" as *const u8 as *const libc::c_char,
