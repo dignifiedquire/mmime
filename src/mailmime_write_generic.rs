@@ -315,8 +315,9 @@ unsafe fn mailmime_disposition_param_write_driver(
     mut param: *mut mailmime_disposition_parm,
 ) -> libc::c_int {
     let mut len: size_t = 0;
-    let mut sizestr: [libc::c_char; 20] = [0; 20];
     let mut r: libc::c_int = 0;
+    let mut sizestr: *mut libc::c_char = std::ptr::null_mut();
+
     match (*param).pa_type {
         0 => {
             len = strlen(b"filename=\x00" as *const u8 as *const libc::c_char)
@@ -335,14 +336,12 @@ unsafe fn mailmime_disposition_param_write_driver(
                 .wrapping_add(strlen((*param).pa_data.pa_read_date))
         }
         4 => {
-            snprintf(
-                sizestr.as_mut_ptr(),
-                20i32 as libc::size_t,
-                b"%lu\x00" as *const u8 as *const libc::c_char,
-                (*param).pa_data.pa_size as libc::size_t,
-            );
+            let value = (*param).pa_data.pa_size as u32;
+            let raw = format!("{}", hex::encode(&value.to_be_bytes()));
+            let raw_c = std::ffi::CString::new(raw).unwrap();
+            sizestr = strdup(raw_c.as_ptr());
             len = strlen(b"size=\x00" as *const u8 as *const libc::c_char)
-                .wrapping_add(strlen(sizestr.as_mut_ptr()))
+                .wrapping_add(strlen(sizestr))
         }
         5 => {
             len = strlen((*(*param).pa_data.pa_parameter).pa_name)
@@ -465,13 +464,7 @@ unsafe fn mailmime_disposition_param_write_driver(
             if r != MAILIMF_NO_ERROR as libc::c_int {
                 return r;
             }
-            r = mailimf_string_write_driver(
-                do_write,
-                data,
-                col,
-                sizestr.as_mut_ptr(),
-                strlen(sizestr.as_mut_ptr()),
-            );
+            r = mailimf_string_write_driver(do_write, data, col, sizestr, strlen(sizestr));
             if r != MAILIMF_NO_ERROR as libc::c_int {
                 return r;
             }
@@ -536,7 +529,7 @@ unsafe fn mailmime_version_write_driver(
     mut version: uint32_t,
 ) -> libc::c_int {
     let mut r: libc::c_int = 0;
-    let mut versionstr: [libc::c_char; 40] = [0; 40];
+
     r = mailimf_string_write_driver(
         do_write,
         data,
@@ -547,20 +540,11 @@ unsafe fn mailmime_version_write_driver(
     if r != MAILIMF_NO_ERROR as libc::c_int {
         return r;
     }
-    snprintf(
-        versionstr.as_mut_ptr(),
-        40i32 as libc::size_t,
-        b"%i.%i\x00" as *const u8 as *const libc::c_char,
-        version >> 16i32,
-        version & 0xffffi32 as libc::c_uint,
-    );
-    r = mailimf_string_write_driver(
-        do_write,
-        data,
-        col,
-        versionstr.as_mut_ptr(),
-        strlen(versionstr.as_mut_ptr()),
-    );
+
+    let raw = format!("{}.{}", (version >> 16) as i32, (version & 0xffff) as i32);
+    let raw_c = std::ffi::CString::new(raw).unwrap();
+    let mut versionstr = strdup(raw_c.as_ptr());
+    r = mailimf_string_write_driver(do_write, data, col, versionstr, strlen(versionstr));
     if r != MAILIMF_NO_ERROR as libc::c_int {
         return r;
     }
@@ -1733,7 +1717,6 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
     let mut i: size_t = 0;
     let mut start: *const libc::c_char = 0 as *const libc::c_char;
     let mut len: size_t = 0;
-    let mut hexstr: [libc::c_char; 6] = [0; 6];
     let mut r: libc::c_int = 0;
     let mut state: libc::c_int = 0;
     start = text;
@@ -1812,17 +1795,18 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                                 return r;
                             }
                             start = text.offset(i as isize).offset(1isize);
-                            snprintf(
-                                hexstr.as_mut_ptr(),
-                                6i32 as libc::size_t,
-                                b"=%02X\x00" as *const u8 as *const libc::c_char,
-                                ch as libc::c_int,
+
+                            let raw = format!(
+                                "={}",
+                                hex::encode_upper(&(ch as libc::c_int).to_be_bytes())
                             );
+                            let raw_c = std::ffi::CString::new(raw).unwrap();
+                            let mut hexstr = strdup(raw_c.as_ptr());
                             r = mailimf_string_write_driver(
                                 do_write,
                                 data,
                                 col,
-                                hexstr.as_mut_ptr(),
+                                hexstr,
                                 3i32 as size_t,
                             );
                             if r != MAILIMF_NO_ERROR as libc::c_int {
@@ -1840,17 +1824,15 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                             return r;
                         }
                         start = text.offset(i as isize).offset(1isize);
-                        snprintf(
-                            hexstr.as_mut_ptr(),
-                            6i32 as libc::size_t,
-                            b"=%02X\x00" as *const u8 as *const libc::c_char,
-                            ch as libc::c_int,
-                        );
+                        let raw =
+                            format!("={}", hex::encode_upper(&(ch as libc::c_int).to_be_bytes()));
+                        let raw_c = std::ffi::CString::new(raw).unwrap();
+                        let mut hexstr = strdup(raw_c.as_ptr());
                         r = mailimf_string_write_driver(
                             do_write,
                             data,
                             col,
-                            hexstr.as_mut_ptr(),
+                            hexstr,
                             3i32 as size_t,
                         );
                         if r != MAILIMF_NO_ERROR as libc::c_int {
@@ -1887,19 +1869,10 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                         return r;
                     }
                     start = text.offset(i as isize);
-                    snprintf(
-                        hexstr.as_mut_ptr(),
-                        6i32 as libc::size_t,
-                        b"=%02X\x00" as *const u8 as *const libc::c_char,
-                        '\r' as i32,
-                    );
-                    r = mailimf_string_write_driver(
-                        do_write,
-                        data,
-                        col,
-                        hexstr.as_mut_ptr(),
-                        3i32 as size_t,
-                    );
+                    let raw = format!("={}", hex::encode_upper(&(b'\r' as i32).to_be_bytes()));
+                    let raw_c = std::ffi::CString::new(raw).unwrap();
+                    let mut hexstr = strdup(raw_c.as_ptr());
+                    r = mailimf_string_write_driver(do_write, data, col, hexstr, 3i32 as size_t);
                     if r != MAILIMF_NO_ERROR as libc::c_int {
                         return r;
                     }
@@ -1917,19 +1890,18 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                         return r;
                     }
                     start = text.offset(i as isize).offset(1isize);
-                    snprintf(
-                        hexstr.as_mut_ptr(),
-                        6i32 as libc::size_t,
-                        b"=%02X\r\n\x00" as *const u8 as *const libc::c_char,
-                        *text.offset(i.wrapping_sub(1i32 as libc::size_t) as isize) as libc::c_int,
+                    let raw = format!(
+                        "={}\r\n",
+                        hex::encode_upper(
+                            (*text.offset(i.wrapping_sub(1i32 as libc::size_t) as isize)
+                                as libc::c_int)
+                                .to_be_bytes()
+                        )
                     );
-                    r = mailimf_string_write_driver(
-                        do_write,
-                        data,
-                        col,
-                        hexstr.as_mut_ptr(),
-                        strlen(hexstr.as_mut_ptr()),
-                    );
+                    let raw_c = std::ffi::CString::new(raw).unwrap();
+                    let mut hexstr = strdup(raw_c.as_ptr());
+
+                    r = mailimf_string_write_driver(do_write, data, col, hexstr, strlen(hexstr));
                     if r != MAILIMF_NO_ERROR as libc::c_int {
                         return r;
                     }
@@ -1949,19 +1921,18 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                         return r;
                     }
                     start = text.offset(i as isize).offset(1isize);
-                    snprintf(
-                        hexstr.as_mut_ptr(),
-                        6i32 as libc::size_t,
-                        b"=%02X\r\n\x00" as *const u8 as *const libc::c_char,
-                        *text.offset(i.wrapping_sub(2i32 as libc::size_t) as isize) as libc::c_int,
+                    let raw = format!(
+                        "={}\r\n",
+                        hex::encode_upper(
+                            (*text.offset(i.wrapping_sub(2i32 as libc::size_t) as isize)
+                                as libc::c_int)
+                                .to_be_bytes()
+                        )
                     );
-                    r = mailimf_string_write_driver(
-                        do_write,
-                        data,
-                        col,
-                        hexstr.as_mut_ptr(),
-                        strlen(hexstr.as_mut_ptr()),
-                    );
+                    let raw_c = std::ffi::CString::new(raw).unwrap();
+                    let mut hexstr = strdup(raw_c.as_ptr());
+
+                    r = mailimf_string_write_driver(do_write, data, col, hexstr, strlen(hexstr));
                     if r != MAILIMF_NO_ERROR as libc::c_int {
                         return r;
                     }
@@ -1974,20 +1945,15 @@ pub unsafe fn mailmime_quoted_printable_write_driver(
                         return r;
                     }
                     start = text.offset(i as isize).offset(1isize);
-                    snprintf(
-                        hexstr.as_mut_ptr(),
-                        6i32 as libc::size_t,
-                        b"%c=%02X\x00" as *const u8 as *const libc::c_char,
-                        *text.offset(i.wrapping_sub(2i32 as libc::size_t) as isize) as libc::c_int,
-                        '\r' as i32,
+                    let raw = format!(
+                        "{}={}\r\n",
+                        (*text.offset(i.wrapping_sub(2i32 as libc::size_t) as isize) as u8 as char),
+                        hex::encode_upper((b'\r' as i32).to_be_bytes()),
                     );
-                    r = mailimf_string_write_driver(
-                        do_write,
-                        data,
-                        col,
-                        hexstr.as_mut_ptr(),
-                        strlen(hexstr.as_mut_ptr()),
-                    );
+                    let raw_c = std::ffi::CString::new(raw).unwrap();
+                    let mut hexstr = strdup(raw_c.as_ptr());
+
+                    r = mailimf_string_write_driver(do_write, data, col, hexstr, strlen(hexstr));
                     if r != MAILIMF_NO_ERROR as libc::c_int {
                         return r;
                     }

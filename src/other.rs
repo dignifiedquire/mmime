@@ -46,19 +46,6 @@ pub(crate) unsafe fn strncasecmp(
     }
 }
 
-#[cfg(not(windows))]
-pub(crate) use libc::snprintf;
-
-#[cfg(windows)]
-extern "C" {
-    pub(crate) fn snprintf(
-        s: *mut libc::c_char,
-        n: libc::size_t,
-        format: *const libc::c_char,
-        _: ...
-    ) -> libc::c_int;
-}
-
 pub(crate) unsafe fn strdup(s: *const libc::c_char) -> *mut libc::c_char {
     let slen = libc::strlen(s);
     let result = libc::malloc(slen + 1);
