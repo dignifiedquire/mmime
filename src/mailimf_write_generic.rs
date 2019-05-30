@@ -1581,18 +1581,14 @@ unsafe fn mailimf_date_time_write_driver(
     mut col: *mut libc::c_int,
     mut date_time: *mut mailimf_date_time,
 ) -> libc::c_int {
-    let mut r: libc::c_int = 0;
-    let mut date_str: [libc::c_char; 256] = [0; 256];
-    let mut wday: libc::c_int = 0;
-    wday = dayofweek(
+    let wday = dayofweek(
         (*date_time).dt_year,
         (*date_time).dt_month,
         (*date_time).dt_day,
     );
-    snprintf(
-        date_str.as_mut_ptr(),
-        256i32 as libc::size_t,
-        b"%s, %i %s %i %02i:%02i:%02i %+05i\x00" as *const u8 as *const libc::c_char,
+
+    let date_str = format!(
+        "{}, {} {} {} {:02}:{:02}:{:02} {:+05}",
         week_of_day_str[wday as usize],
         (*date_time).dt_day,
         month_str[((*date_time).dt_month - 1i32) as usize],
@@ -1602,41 +1598,23 @@ unsafe fn mailimf_date_time_write_driver(
         (*date_time).dt_sec,
         (*date_time).dt_zone,
     );
-    r = mailimf_string_write_driver(
+    let date_str_c = std::ffi::CString::new(date_str).unwrap();
+    let r = mailimf_string_write_driver(
         do_write,
         data,
         col,
-        date_str.as_mut_ptr(),
-        strlen(date_str.as_mut_ptr()),
+        date_str_c.as_ptr() as *mut _,
+        strlen(date_str_c.as_ptr()),
     );
     if r != MAILIMF_NO_ERROR as libc::c_int {
         return r;
     }
     return MAILIMF_NO_ERROR as libc::c_int;
 }
-static mut month_str: [*const libc::c_char; 12] = [
-    b"Jan\x00" as *const u8 as *const libc::c_char,
-    b"Feb\x00" as *const u8 as *const libc::c_char,
-    b"Mar\x00" as *const u8 as *const libc::c_char,
-    b"Apr\x00" as *const u8 as *const libc::c_char,
-    b"May\x00" as *const u8 as *const libc::c_char,
-    b"Jun\x00" as *const u8 as *const libc::c_char,
-    b"Jul\x00" as *const u8 as *const libc::c_char,
-    b"Aug\x00" as *const u8 as *const libc::c_char,
-    b"Sep\x00" as *const u8 as *const libc::c_char,
-    b"Oct\x00" as *const u8 as *const libc::c_char,
-    b"Nov\x00" as *const u8 as *const libc::c_char,
-    b"Dec\x00" as *const u8 as *const libc::c_char,
+static mut month_str: [&'static str; 12] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
-static mut week_of_day_str: [*const libc::c_char; 7] = [
-    b"Sun\x00" as *const u8 as *const libc::c_char,
-    b"Mon\x00" as *const u8 as *const libc::c_char,
-    b"Tue\x00" as *const u8 as *const libc::c_char,
-    b"Wed\x00" as *const u8 as *const libc::c_char,
-    b"Thu\x00" as *const u8 as *const libc::c_char,
-    b"Fri\x00" as *const u8 as *const libc::c_char,
-    b"Sat\x00" as *const u8 as *const libc::c_char,
-];
+static mut week_of_day_str: [&'static str; 7] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 /* 0 = Sunday */
 /* y > 1752 */
 unsafe fn dayofweek(

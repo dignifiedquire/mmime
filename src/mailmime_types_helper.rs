@@ -839,21 +839,17 @@ pub unsafe fn mailmime_new_empty(
 }
 
 pub unsafe fn mailmime_generate_boundary() -> *mut libc::c_char {
-    let mut id: [libc::c_char; 512] = [0; 512];
-    let mut name: [libc::c_char; 512] = [0; 512];
-    let mut value: libc::c_int = 0;
     let mut rng = thread_rng();
     let value: libc::c_int = rng.gen();
     let now = chrono::Utc::now().timestamp();
-    snprintf(
-        id.as_mut_ptr(),
-        512 as libc::size_t,
-        b"%llx_%lx_%x\x00" as *const u8 as *const libc::c_char,
-        now as libc::c_longlong,
-        value,
-        std::process::id(),
+    let raw = format!(
+        "{}_{}_{}",
+        hex::encode(&now.to_be_bytes()[4..]),
+        hex::encode(value.to_be_bytes()),
+        hex::encode(&std::process::id().to_le_bytes()[..2])
     );
-    return strdup(id.as_mut_ptr());
+
+    strdup(std::ffi::CString::new(raw).unwrap().as_ptr())
 }
 
 pub unsafe fn mailmime_new_with_content(
@@ -1432,4 +1428,18 @@ pub unsafe fn mailmime_param_new_with_data(
         free(param_name as *mut libc::c_void);
     }
     return 0 as *mut mailmime_parameter;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_boundary() {
+        let res_c = unsafe { mailmime_generate_boundary() };
+        let res = unsafe { std::ffi::CStr::from_ptr(res_c).to_str().unwrap() };
+        assert_eq!(res.len(), 22);
+
+        unsafe { free(res_c as *mut _) };
+    }
 }
