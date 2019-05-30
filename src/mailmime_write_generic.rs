@@ -337,7 +337,7 @@ unsafe fn mailmime_disposition_param_write_driver(
         }
         4 => {
             let value = (*param).pa_data.pa_size as u32;
-            let raw = format!("{:X}", value);
+            let raw = format!("{}", value);
             let raw_c = std::ffi::CString::new(raw).unwrap();
             sizestr = strdup(raw_c.as_ptr());
             len = strlen(b"size=\x00" as *const u8 as *const libc::c_char)

@@ -1588,7 +1588,7 @@ unsafe fn mailimf_date_time_write_driver(
     );
 
     let date_str = format!(
-        "{}, {} {} {} {:02}:{:02}:{:02} +{:05}",
+        "{}, {} {} {} {:02}:{:02}:{:02} {:+05}",
         week_of_day_str[wday as usize],
         (*date_time).dt_day,
         month_str[((*date_time).dt_month - 1i32) as usize],
