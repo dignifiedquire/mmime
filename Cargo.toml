@@ -7,6 +7,7 @@ license = "MIT OR Apache-2.0"
 homepage = "https://github.com/dignifiedquire/mmime"
 repository = "https://github.com/dignifiedquire/mmime"
 readme = "README.md"
+description = "Mime parsing for email"
 
 
 keywords = ["mail", "mim", "email", "imap", "smtp"]
