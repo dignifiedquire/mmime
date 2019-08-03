@@ -53,43 +53,6 @@ pub fn clist_new() -> *mut clist {
 pub unsafe fn clist_free(mut lst: *mut clist) {
     Box::from_raw(lst);
 }
-/* Inserts this data pointer before the element pointed by the iterator */
-pub unsafe fn clist_insert_before(
-    mut lst: *mut clist,
-    mut iter: *mut clistiter,
-    mut data: *mut libc::c_void,
-) -> libc::c_int {
-    let mut c: *mut clistcell = 0 as *mut clistcell;
-    c = malloc(::std::mem::size_of::<clistcell>() as libc::size_t) as *mut clistcell;
-    if c.is_null() {
-        return -1i32;
-    }
-    (*c).data = data;
-    (*lst).count += 1;
-    if (*lst).first == (*lst).last && (*lst).last.is_null() {
-        (*c).next = 0 as *mut clistcell;
-        (*c).previous = (*c).next;
-        (*lst).last = c;
-        (*lst).first = (*lst).last;
-        return 0i32;
-    }
-    if iter.is_null() {
-        (*c).previous = (*lst).last;
-        (*(*c).previous).next = c;
-        (*c).next = 0 as *mut clistcell;
-        (*lst).last = c;
-        return 0i32;
-    }
-    (*c).previous = (*iter).previous;
-    (*c).next = iter;
-    (*(*c).next).previous = c;
-    if !(*c).previous.is_null() {
-        (*(*c).previous).next = c
-    } else {
-        (*lst).first = c
-    }
-    return 0i32;
-}
 /* Inserts this data pointer after the element pointed by the iterator */
 pub unsafe fn clist_insert_after(
     mut lst: *mut clist,
