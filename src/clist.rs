@@ -53,8 +53,6 @@ pub fn clist_new() -> *mut clist {
 pub unsafe fn clist_free(mut lst: *mut clist) {
     Box::from_raw(lst);
 }
-/* Some of the following routines can be implemented as macros to
-be faster. If you don't want it, define NO_MACROS */
 /* Inserts this data pointer before the element pointed by the iterator */
 pub unsafe fn clist_insert_before(
     mut lst: *mut clist,
