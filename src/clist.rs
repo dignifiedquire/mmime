@@ -10,7 +10,7 @@ pub struct clistcell {
     pub next: *mut clistcell,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 #[repr(C)]
 pub struct clist {
     pub first: *mut clistcell,
