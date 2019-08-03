@@ -77,11 +77,11 @@ pub union unnamed_1 {
 pub struct mailmime_language {
     pub lg_list: *mut clist,
 }
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 #[repr(C)]
 pub struct mailmime_disposition {
     pub dsp_type: *mut mailmime_disposition_type,
-    pub dsp_parms: *mut clist,
+    pub dsp_parms: Vec<*mut mailmime_disposition_parm>,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -500,15 +500,9 @@ pub unsafe fn mailmime_field_free(mut field: *mut mailmime_field) {
 
 pub unsafe fn mailmime_disposition_free(mut dsp: *mut mailmime_disposition) {
     mailmime_disposition_type_free((*dsp).dsp_type);
-    clist_foreach(
-        (*dsp).dsp_parms,
-        ::std::mem::transmute::<
-            Option<unsafe fn(_: *mut mailmime_disposition_parm) -> ()>,
-            clist_func,
-        >(Some(mailmime_disposition_parm_free)),
-        0 as *mut libc::c_void,
-    );
-    clist_free((*dsp).dsp_parms);
+    for &parm in &(*dsp).dsp_parms {
+        mailmime_disposition_parm_free(parm);
+    }
     free(dsp as *mut libc::c_void);
 }
 
@@ -787,7 +781,7 @@ pub unsafe fn mailmime_charset_free(mut charset: *mut libc::c_char) {
 
 pub unsafe fn mailmime_disposition_new(
     mut dsp_type: *mut mailmime_disposition_type,
-    mut dsp_parms: *mut clist,
+    mut dsp_parms: Vec<*mut mailmime_disposition_parm>,
 ) -> *mut mailmime_disposition {
     let mut dsp: *mut mailmime_disposition = 0 as *mut mailmime_disposition;
     dsp = malloc(::std::mem::size_of::<mailmime_disposition>() as libc::size_t)
