@@ -32,7 +32,6 @@ use crate::other::*;
     for "-0200", the value is -200)
 */
 #[derive(Copy, Clone, Debug)]
-#[repr(C)]
 pub struct mailimf_date_time {
     pub dt_day: libc::c_int,
     pub dt_month: libc::c_int,
@@ -62,13 +61,11 @@ pub const MAILIMF_ADDRESS_ERROR: unnamed = 0;
   - group is a group if type is MAILIMF_ADDRESS_GROUP
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_address {
     pub ad_type: libc::c_int,
     pub ad_data: unnamed_0,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub union unnamed_0 {
     pub ad_mailbox: *mut mailimf_mailbox,
     pub ad_group: *mut mailimf_group,
@@ -84,7 +81,6 @@ pub union unnamed_0 {
   - mb_list is a list of mailboxes
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_group {
     pub grp_display_name: *mut libc::c_char,
     pub grp_mb_list: *mut mailimf_mailbox_list,
@@ -95,7 +91,6 @@ pub struct mailimf_group {
   - list is a list of mailboxes
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_mailbox_list {
     pub mb_list: *mut clist,
 }
@@ -110,7 +105,6 @@ pub struct mailimf_mailbox_list {
     in '"name" <mailbox@domain>, should be allocated with malloc()
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_mailbox {
     pub mb_display_name: *mut libc::c_char,
     pub mb_addr_spec: *mut libc::c_char,
@@ -121,7 +115,6 @@ pub struct mailimf_mailbox {
   - list is a list of addresses
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_address_list {
     pub ad_list: *mut clist,
 }
@@ -134,7 +127,6 @@ pub struct mailimf_address_list {
   - size is the size of the text part
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_body {
     pub bd_text: *const libc::c_char,
     pub bd_size: size_t,
@@ -147,7 +139,6 @@ pub struct mailimf_body {
   - msg_body is the text part of the message
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_message {
     pub msg_fields: *mut mailimf_fields,
     pub msg_body: *mut mailimf_body,
@@ -158,7 +149,6 @@ pub struct mailimf_message {
   - fld_list is a list of header fields
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_fields {
     pub fld_list: *mut clist,
 }
@@ -215,13 +205,11 @@ pub struct mailimf_fields {
   - fld_data.fld_optional_field is an other field and is not parsed
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_field {
     pub fld_type: libc::c_int,
     pub fld_data: unnamed_1,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub union unnamed_1 {
     pub fld_return_path: *mut mailimf_return,
     pub fld_resent_date: *mut mailimf_orig_date,
@@ -254,7 +242,6 @@ pub union unnamed_1 {
   - fld_value is the value of the field
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_optional_field {
     pub fld_name: *mut libc::c_char,
     pub fld_value: *mut libc::c_char,
@@ -265,7 +252,6 @@ pub struct mailimf_optional_field {
   - kw_list is the list of keywords
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_keywords {
     pub kw_list: *mut clist,
 }
@@ -275,7 +261,6 @@ pub struct mailimf_keywords {
   - cm_value is the value of the field
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_comments {
     pub cm_value: *mut libc::c_char,
 }
@@ -285,7 +270,6 @@ pub struct mailimf_comments {
   - sbj_value is the value of the field
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_subject {
     pub sbj_value: *mut libc::c_char,
 }
@@ -295,7 +279,6 @@ pub struct mailimf_subject {
  - msg_id_list is the list of message identifiers
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_references {
     pub mid_list: *mut clist,
 }
@@ -305,7 +288,6 @@ pub struct mailimf_references {
   - mid_list is the list of message identifers
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_in_reply_to {
     pub mid_list: *mut clist,
 }
@@ -315,7 +297,6 @@ pub struct mailimf_in_reply_to {
   - mid_value is the message identifier
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_message_id {
     pub mid_value: *mut libc::c_char,
 }
@@ -325,7 +306,6 @@ pub struct mailimf_message_id {
   - bcc_addr_list is the parsed addres list
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_bcc {
     pub bcc_addr_list: *mut mailimf_address_list,
 }
@@ -335,7 +315,6 @@ pub struct mailimf_bcc {
   - cc_addr_list is the parsed addres list
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_cc {
     pub cc_addr_list: *mut mailimf_address_list,
 }
@@ -345,7 +324,6 @@ pub struct mailimf_cc {
   - to_addr_list is the parsed address list
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_to {
     pub to_addr_list: *mut mailimf_address_list,
 }
@@ -355,7 +333,6 @@ pub struct mailimf_to {
  - rt_addr_list is the parsed address list
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_reply_to {
     pub rt_addr_list: *mut mailimf_address_list,
 }
@@ -365,7 +342,6 @@ pub struct mailimf_reply_to {
   - snd_mb is the parsed mailbox
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_sender {
     pub snd_mb: *mut mailimf_mailbox,
 }
@@ -375,7 +351,6 @@ pub struct mailimf_sender {
   - mb_list is the parsed mailbox list
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_from {
     pub frm_mb_list: *mut mailimf_mailbox_list,
 }
@@ -385,7 +360,6 @@ pub struct mailimf_from {
   - date_time is the parsed date
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_orig_date {
     pub dt_date_time: *mut mailimf_date_time,
 }
@@ -395,7 +369,6 @@ pub struct mailimf_orig_date {
   - ret_path is the parsed value of Return-Path
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_return {
     pub ret_path: *mut mailimf_path,
 }
@@ -405,7 +378,6 @@ pub struct mailimf_return {
   - pt_addr_spec is a mailbox
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_path {
     pub pt_addr_spec: *mut libc::c_char,
 }

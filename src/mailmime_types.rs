@@ -14,32 +14,27 @@ pub const MAILMIME_MECHANISM_7BIT: libc::c_uint = 1;
 pub const MAILMIME_MECHANISM_ERROR: libc::c_uint = 0;
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_composite_type {
     pub ct_type: libc::c_int,
     pub ct_token: *mut libc::c_char,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_content {
     pub ct_type: *mut mailmime_type,
     pub ct_subtype: *mut libc::c_char,
     pub ct_parameters: *mut clist,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_type {
     pub tp_type: libc::c_int,
     pub tp_data: unnamed,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub union unnamed {
     pub tp_discrete_type: *mut mailmime_discrete_type,
     pub tp_composite_type: *mut mailmime_composite_type,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_discrete_type {
     pub dt_type: libc::c_int,
     pub dt_extension: *mut libc::c_char,
@@ -55,13 +50,11 @@ pub const MAILMIME_FIELD_TRANSFER_ENCODING: unnamed_0 = 2;
 pub const MAILMIME_FIELD_TYPE: unnamed_0 = 1;
 pub const MAILMIME_FIELD_NONE: unnamed_0 = 0;
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_field {
     pub fld_type: libc::c_int,
     pub fld_data: unnamed_1,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub union unnamed_1 {
     pub fld_content: *mut mailmime_content,
     pub fld_encoding: *mut mailmime_mechanism,
@@ -73,48 +66,40 @@ pub union unnamed_1 {
     pub fld_location: *mut libc::c_char,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_language {
     pub lg_list: *mut clist,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_disposition {
     pub dsp_type: *mut mailmime_disposition_type,
     pub dsp_parms: *mut clist,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_disposition_type {
     pub dsp_type: libc::c_int,
     pub dsp_extension: *mut libc::c_char,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_mechanism {
     pub enc_type: libc::c_int,
     pub enc_token: *mut libc::c_char,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_fields {
     pub fld_list: *mut clist,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_parameter {
     pub pa_name: *mut libc::c_char,
     pub pa_value: *mut libc::c_char,
 }
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_disposition_parm {
     pub pa_type: libc::c_int,
     pub pa_data: unnamed_3,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub union unnamed_3 {
     pub pa_filename: *mut libc::c_char,
     pub pa_creation_date: *mut libc::c_char,
@@ -129,7 +114,6 @@ pub const MAILMIME_DISPOSITION_PARM_MODIFICATION_DATE: unnamed_11 = 2;
 pub const MAILMIME_DISPOSITION_PARM_CREATION_DATE: unnamed_11 = 1;
 pub const MAILMIME_DISPOSITION_PARM_FILENAME: unnamed_11 = 0;
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_multipart_body {
     pub bd_list: *mut clist,
 }
@@ -137,7 +121,6 @@ pub type unnamed_4 = libc::c_uint;
 pub const MAILMIME_DATA_FILE: unnamed_4 = 1;
 pub const MAILMIME_DATA_TEXT: unnamed_4 = 0;
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_data {
     pub dt_type: libc::c_int,
     pub dt_encoding: libc::c_int,
@@ -145,13 +128,11 @@ pub struct mailmime_data {
     pub dt_data: unnamed_5,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub union unnamed_5 {
     pub dt_text: unnamed_6,
     pub dt_filename: *mut libc::c_char,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct unnamed_6 {
     pub dt_data: *const libc::c_char,
     pub dt_length: size_t,
@@ -163,7 +144,6 @@ pub const MAILMIME_SINGLE: unnamed_7 = 1;
 pub const MAILMIME_NONE: unnamed_7 = 0;
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime {
     pub mm_parent_type: libc::c_int,
     pub mm_parent: *mut mailmime,
@@ -177,7 +157,6 @@ pub struct mailmime {
     pub mm_data: unnamed_8,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub union unnamed_8 {
     pub mm_single: *mut mailmime_data,
     pub mm_multipart: unnamed_10,
@@ -185,21 +164,18 @@ pub union unnamed_8 {
 }
 /* message */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct unnamed_9 {
     pub mm_fields: *mut mailimf_fields,
     pub mm_msg_mime: *mut mailmime,
 }
 /* multi-part */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct unnamed_10 {
     pub mm_preamble: *mut mailmime_data,
     pub mm_epilogue: *mut mailmime_data,
     pub mm_mp_list: *mut clist,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_encoded_word {
     pub wd_charset: *mut libc::c_char,
     pub wd_text: *mut libc::c_char,
@@ -207,7 +183,6 @@ pub struct mailmime_encoded_word {
 pub type unnamed_11 = libc::c_uint;
 pub const MAILMIME_DISPOSITION_PARM_SIZE: unnamed_11 = 4;
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_section {
     pub sec_list: *mut clist,
 }

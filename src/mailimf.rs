@@ -42,7 +42,6 @@ day-name        =       "Mon" / "Tue" / "Wed" / "Thu" /
                         "Fri" / "Sat" / "Sun"
 */
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailimf_token_value {
     pub value: libc::c_int,
     pub str_0: *mut libc::c_char,

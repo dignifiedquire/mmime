@@ -3,7 +3,6 @@ use libc;
 use crate::other::*;
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct clistcell {
     pub data: *mut libc::c_void,
     pub previous: *mut clistcell,
@@ -11,7 +10,6 @@ pub struct clistcell {
 }
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct clist {
     pub first: *mut clistcell,
     pub last: *mut clistcell,

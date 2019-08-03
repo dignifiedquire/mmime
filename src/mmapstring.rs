@@ -11,7 +11,6 @@ lazy_static! {
 }
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct MMAPString {
     pub str_0: *mut libc::c_char,
     pub len: size_t,

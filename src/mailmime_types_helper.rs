@@ -8,7 +8,6 @@ use crate::mailmime_types::*;
 use crate::other::*;
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct mailmime_single_fields {
     pub fld_content: *mut mailmime_content,
     pub fld_content_charset: *mut libc::c_char,

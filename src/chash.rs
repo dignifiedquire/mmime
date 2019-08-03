@@ -3,14 +3,12 @@ use libc;
 use crate::other::*;
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct chashdatum {
     pub data: *mut libc::c_void,
     pub len: libc::c_uint,
 }
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct chash {
     pub size: libc::c_uint,
     pub count: libc::c_uint,
@@ -20,7 +18,6 @@ pub struct chash {
 }
 
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct chashcell {
     pub func: libc::c_uint,
     pub key: chashdatum,
