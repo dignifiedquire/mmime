@@ -18,33 +18,40 @@ pub struct clist {
     pub count: libc::c_int,
 }
 
+impl Default for clist {
+    fn default() -> Self {
+        Self {
+            first: std::ptr::null_mut(),
+            last: std::ptr::null_mut(),
+            count: 0,
+        }
+    }
+}
+
+impl Drop for clist {
+    fn drop(&mut self) {
+        unsafe {
+            let mut l1 = self.first;
+            while !l1.is_null() {
+                let l2 = (*l1).next;
+                free(l1 as *mut libc::c_void);
+                l1 = l2
+            }
+        }
+    }
+}
+
 pub type clistiter = clistcell;
 pub type clist_func =
     Option<unsafe extern "C" fn(_: *mut libc::c_void, _: *mut libc::c_void) -> ()>;
 
 /* Allocate a new pointer list */
-pub unsafe fn clist_new() -> *mut clist {
-    let mut lst: *mut clist = 0 as *mut clist;
-    lst = malloc(::std::mem::size_of::<clist>() as libc::size_t) as *mut clist;
-    if lst.is_null() {
-        return 0 as *mut clist;
-    }
-    (*lst).last = 0 as *mut clistcell;
-    (*lst).first = (*lst).last;
-    (*lst).count = 0i32;
-    return lst;
+pub fn clist_new() -> *mut clist {
+    Box::into_raw(Box::new(Default::default()))
 }
 /* Destroys a list. Data pointed by data pointers is NOT freed. */
 pub unsafe fn clist_free(mut lst: *mut clist) {
-    let mut l1: *mut clistcell = 0 as *mut clistcell;
-    let mut l2: *mut clistcell = 0 as *mut clistcell;
-    l1 = (*lst).first;
-    while !l1.is_null() {
-        l2 = (*l1).next;
-        free(l1 as *mut libc::c_void);
-        l1 = l2
-    }
-    free(lst as *mut libc::c_void);
+    Box::from_raw(lst);
 }
 /* Some of the following routines can be implemented as macros to
 be faster. If you don't want it, define NO_MACROS */
