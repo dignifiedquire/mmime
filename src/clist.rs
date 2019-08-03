@@ -126,22 +126,6 @@ pub unsafe fn clist_foreach(
     }
 }
 
-pub unsafe fn clist_concat(mut dest: *mut clist, mut src: *mut clist) {
-    if !(*src).first.is_null() {
-        if (*dest).last.is_null() {
-            (*dest).first = (*src).first;
-            (*dest).last = (*src).last
-        } else {
-            (*(*dest).last).next = (*src).first;
-            (*(*src).first).previous = (*dest).last;
-            (*dest).last = (*src).last
-        }
-    }
-    (*dest).count += (*src).count;
-    (*src).first = 0 as *mut clistcell;
-    (*src).last = (*src).first;
-}
-
 pub unsafe fn clist_nth_data(mut lst: *mut clist, mut indx: libc::c_int) -> *mut libc::c_void {
     let mut cur: *mut clistiter = 0 as *mut clistiter;
     cur = internal_clist_nth(lst, indx);
