@@ -80,117 +80,116 @@ pub unsafe fn mailmime_disposition_new_with_data(
     dsp_type = mailmime_disposition_type_new(type_0, 0 as *mut libc::c_char);
     if !dsp_type.is_null() {
         let mut list = Vec::new();
-            if !filename.is_null() {
-                parm = mailmime_disposition_parm_new(
-                    MAILMIME_DISPOSITION_PARM_FILENAME as libc::c_int,
-                    filename,
-                    0 as *mut libc::c_char,
-                    0 as *mut libc::c_char,
-                    0 as *mut libc::c_char,
-                    0i32 as size_t,
-                    0 as *mut mailmime_parameter,
-                );
-                if parm.is_null() {
-                    current_block = 13210718484351940574;
-                } else {
-                    list.push(parm);
-                        current_block = 4166486009154926805;
-                }
+        if !filename.is_null() {
+            parm = mailmime_disposition_parm_new(
+                MAILMIME_DISPOSITION_PARM_FILENAME as libc::c_int,
+                filename,
+                0 as *mut libc::c_char,
+                0 as *mut libc::c_char,
+                0 as *mut libc::c_char,
+                0i32 as size_t,
+                0 as *mut mailmime_parameter,
+            );
+            if parm.is_null() {
+                current_block = 13210718484351940574;
             } else {
+                list.push(parm);
                 current_block = 4166486009154926805;
             }
-            match current_block {
-                4166486009154926805 => {
-                    if !creation_date.is_null() {
-                        parm = mailmime_disposition_parm_new(
-                            MAILMIME_DISPOSITION_PARM_CREATION_DATE as libc::c_int,
-                            0 as *mut libc::c_char,
-                            creation_date,
-                            0 as *mut libc::c_char,
-                            0 as *mut libc::c_char,
-                            0i32 as size_t,
-                            0 as *mut mailmime_parameter,
-                        );
-                        if parm.is_null() {
-                            current_block = 13210718484351940574;
-                        } else {
-                            list.push(parm);
-                                current_block = 12147880666119273379;
-                        }
+        } else {
+            current_block = 4166486009154926805;
+        }
+        match current_block {
+            4166486009154926805 => {
+                if !creation_date.is_null() {
+                    parm = mailmime_disposition_parm_new(
+                        MAILMIME_DISPOSITION_PARM_CREATION_DATE as libc::c_int,
+                        0 as *mut libc::c_char,
+                        creation_date,
+                        0 as *mut libc::c_char,
+                        0 as *mut libc::c_char,
+                        0i32 as size_t,
+                        0 as *mut mailmime_parameter,
+                    );
+                    if parm.is_null() {
+                        current_block = 13210718484351940574;
                     } else {
+                        list.push(parm);
                         current_block = 12147880666119273379;
                     }
-                    match current_block {
-                        13210718484351940574 => {}
-                        _ => {
-                            if !modification_date.is_null() {
-                                parm = mailmime_disposition_parm_new(
-                                    MAILMIME_DISPOSITION_PARM_MODIFICATION_DATE as libc::c_int,
-                                    0 as *mut libc::c_char,
-                                    0 as *mut libc::c_char,
-                                    modification_date,
-                                    0 as *mut libc::c_char,
-                                    0i32 as size_t,
-                                    0 as *mut mailmime_parameter,
-                                );
-                                if parm.is_null() {
-                                    current_block = 13210718484351940574;
-                                } else {
-                                    list.push(parm);
-                                        current_block = 13550086250199790493;
-                                }
+                } else {
+                    current_block = 12147880666119273379;
+                }
+                match current_block {
+                    13210718484351940574 => {}
+                    _ => {
+                        if !modification_date.is_null() {
+                            parm = mailmime_disposition_parm_new(
+                                MAILMIME_DISPOSITION_PARM_MODIFICATION_DATE as libc::c_int,
+                                0 as *mut libc::c_char,
+                                0 as *mut libc::c_char,
+                                modification_date,
+                                0 as *mut libc::c_char,
+                                0i32 as size_t,
+                                0 as *mut mailmime_parameter,
+                            );
+                            if parm.is_null() {
+                                current_block = 13210718484351940574;
                             } else {
+                                list.push(parm);
                                 current_block = 13550086250199790493;
                             }
-                            match current_block {
-                                13210718484351940574 => {}
-                                _ => {
-                                    if !read_date.is_null() {
-                                        parm = mailmime_disposition_parm_new(
-                                            MAILMIME_DISPOSITION_PARM_READ_DATE as libc::c_int,
-                                            0 as *mut libc::c_char,
-                                            0 as *mut libc::c_char,
-                                            0 as *mut libc::c_char,
-                                            read_date,
-                                            0i32 as size_t,
-                                            0 as *mut mailmime_parameter,
-                                        );
-                                        if parm.is_null() {
-                                            current_block = 13210718484351940574;
-                                        } else {
-                                            list.push(parm);
-                                                current_block = 9520865839495247062;
-                                        }
+                        } else {
+                            current_block = 13550086250199790493;
+                        }
+                        match current_block {
+                            13210718484351940574 => {}
+                            _ => {
+                                if !read_date.is_null() {
+                                    parm = mailmime_disposition_parm_new(
+                                        MAILMIME_DISPOSITION_PARM_READ_DATE as libc::c_int,
+                                        0 as *mut libc::c_char,
+                                        0 as *mut libc::c_char,
+                                        0 as *mut libc::c_char,
+                                        read_date,
+                                        0i32 as size_t,
+                                        0 as *mut mailmime_parameter,
+                                    );
+                                    if parm.is_null() {
+                                        current_block = 13210718484351940574;
                                     } else {
+                                        list.push(parm);
                                         current_block = 9520865839495247062;
                                     }
-                                    match current_block {
-                                        13210718484351940574 => {}
-                                        _ => {
-                                            if size != -1i32 as size_t {
-                                                parm = mailmime_disposition_parm_new(
-                                                    MAILMIME_DISPOSITION_PARM_SIZE as libc::c_int,
-                                                    0 as *mut libc::c_char,
-                                                    0 as *mut libc::c_char,
-                                                    0 as *mut libc::c_char,
-                                                    0 as *mut libc::c_char,
-                                                    size,
-                                                    0 as *mut mailmime_parameter,
-                                                );
-                                                if parm.is_null() {
-                                                    current_block = 13210718484351940574;
-                                                } else {
-                                                    list.push(parm);
-                                                        current_block = 12199444798915819164;
-                                                }
+                                } else {
+                                    current_block = 9520865839495247062;
+                                }
+                                match current_block {
+                                    13210718484351940574 => {}
+                                    _ => {
+                                        if size != -1i32 as size_t {
+                                            parm = mailmime_disposition_parm_new(
+                                                MAILMIME_DISPOSITION_PARM_SIZE as libc::c_int,
+                                                0 as *mut libc::c_char,
+                                                0 as *mut libc::c_char,
+                                                0 as *mut libc::c_char,
+                                                0 as *mut libc::c_char,
+                                                size,
+                                                0 as *mut mailmime_parameter,
+                                            );
+                                            if parm.is_null() {
+                                                current_block = 13210718484351940574;
                                             } else {
+                                                list.push(parm);
                                                 current_block = 12199444798915819164;
                                             }
-                                            match current_block {
-                                                13210718484351940574 => {}
-                                                _ => {
-                                                    return mailmime_disposition_new(dsp_type, list);
-                                                }
+                                        } else {
+                                            current_block = 12199444798915819164;
+                                        }
+                                        match current_block {
+                                            13210718484351940574 => {}
+                                            _ => {
+                                                return mailmime_disposition_new(dsp_type, list);
                                             }
                                         }
                                     }
@@ -199,11 +198,12 @@ pub unsafe fn mailmime_disposition_new_with_data(
                         }
                     }
                 }
-                _ => {}
             }
-            for parm in list {
-                mailmime_disposition_parm_free(parm);
-            }
+            _ => {}
+        }
+        for parm in list {
+            mailmime_disposition_parm_free(parm);
+        }
         mailmime_disposition_type_free(dsp_type);
     }
     return 0 as *mut mailmime_disposition;

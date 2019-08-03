@@ -30,63 +30,58 @@ pub unsafe fn mailmime_disposition_parse(
         res = r
     } else {
         let mut list = Vec::new();
-            loop {
-                let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
-                final_token = cur_token;
-                r = mailimf_unstrict_char_parse(
-                    message,
-                    length,
-                    &mut cur_token,
-                    ';' as i32 as libc::c_char,
-                );
+        loop {
+            let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
+            final_token = cur_token;
+            r = mailimf_unstrict_char_parse(
+                message,
+                length,
+                &mut cur_token,
+                ';' as i32 as libc::c_char,
+            );
+            if r == MAILIMF_NO_ERROR as libc::c_int {
+                param = 0 as *mut mailmime_disposition_parm;
+                r = mailmime_disposition_parm_parse(message, length, &mut cur_token, &mut param);
                 if r == MAILIMF_NO_ERROR as libc::c_int {
-                    param = 0 as *mut mailmime_disposition_parm;
-                    r = mailmime_disposition_parm_parse(
-                        message,
-                        length,
-                        &mut cur_token,
-                        &mut param,
-                    );
-                    if r == MAILIMF_NO_ERROR as libc::c_int {
-                        list.push(param);
-                            continue;
-                    } else if r == MAILIMF_ERROR_PARSE as libc::c_int {
-                        cur_token = final_token;
-                        current_block = 652864300344834934;
-                        break;
-                    } else {
-                        res = r;
-                        current_block = 18290070879695007868;
-                        break;
-                    }
+                    list.push(param);
+                    continue;
+                } else if r == MAILIMF_ERROR_PARSE as libc::c_int {
+                    cur_token = final_token;
+                    current_block = 652864300344834934;
+                    break;
                 } else {
-                    /* do nothing */
-                    if r == MAILIMF_ERROR_PARSE as libc::c_int {
-                        current_block = 652864300344834934;
-                        break;
-                    }
                     res = r;
                     current_block = 18290070879695007868;
                     break;
                 }
-            }
-            match current_block {
-                652864300344834934 => {
-                    // FIXME: move list instead of cloning once error handling is rustified
-                    dsp = mailmime_disposition_new(dsp_type, list.clone());
-                    if dsp.is_null() {
-                        res = MAILIMF_ERROR_MEMORY as libc::c_int
-                    } else {
-                        *result = dsp;
-                        *indx = cur_token;
-                        return MAILIMF_NO_ERROR as libc::c_int;
-                    }
+            } else {
+                /* do nothing */
+                if r == MAILIMF_ERROR_PARSE as libc::c_int {
+                    current_block = 652864300344834934;
+                    break;
                 }
-                _ => {}
+                res = r;
+                current_block = 18290070879695007868;
+                break;
             }
-            for &mut parm in &mut list {
-                mailmime_disposition_parm_free(parm);
+        }
+        match current_block {
+            652864300344834934 => {
+                // FIXME: move list instead of cloning once error handling is rustified
+                dsp = mailmime_disposition_new(dsp_type, list.clone());
+                if dsp.is_null() {
+                    res = MAILIMF_ERROR_MEMORY as libc::c_int
+                } else {
+                    *result = dsp;
+                    *indx = cur_token;
+                    return MAILIMF_NO_ERROR as libc::c_int;
+                }
             }
+            _ => {}
+        }
+        for &mut parm in &mut list {
+            mailmime_disposition_parm_free(parm);
+        }
         mailmime_disposition_type_free(dsp_type);
     }
     return res;
