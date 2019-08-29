@@ -55,22 +55,10 @@ pub unsafe fn mailmime_content_param_get(
     mut content: *mut mailmime_content,
     mut name: *mut libc::c_char,
 ) -> *mut libc::c_char {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
-    cur = (*(*content).ct_parameters).first;
-    while !cur.is_null() {
-        let mut param: *mut mailmime_parameter = 0 as *mut mailmime_parameter;
-        param = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailmime_parameter;
+    for cur in (&*(*content).ct_parameters).iter() {
+        let param = *cur as *mut mailmime_parameter;
         if strcasecmp((*param).pa_name, name) == 0i32 {
             return (*param).pa_value;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     return 0 as *mut libc::c_char;
@@ -195,31 +183,18 @@ unsafe fn mailmime_parse_with_default(
     cur_token = *indx;
     if content_type.is_null() {
         if !mime_fields.is_null() {
-            let mut cur: *mut clistiter = 0 as *mut clistiter;
-            cur = (*(*mime_fields).fld_list).first;
-            while !cur.is_null() {
-                let mut field: *mut mailmime_field = 0 as *mut mailmime_field;
-                field = (if !cur.is_null() {
-                    (*cur).data
-                } else {
-                    0 as *mut libc::c_void
-                }) as *mut mailmime_field;
+            for (i, cur) in (*(*mime_fields).fld_list).iter().enumerate() {
+                let mut field = *cur as *mut mailmime_field;
                 if (*field).fld_type == MAILMIME_FIELD_TYPE as libc::c_int {
                     content_type = (*field).fld_data.fld_content;
                     (*field).fld_data.fld_content = 0 as *mut mailmime_content;
-                    clist_delete((*mime_fields).fld_list, cur);
+                    clist_delete((*mime_fields).fld_list, i);
                     mailmime_field_free(field);
                     /*
                       there may be a leak due to the detached content type
                       in case the function fails
                     */
                     break;
-                } else {
-                    cur = if !cur.is_null() {
-                        (*cur).next
-                    } else {
-                        0 as *mut clistcell
-                    }
                 }
             }
         }
@@ -675,24 +650,16 @@ unsafe fn mailmime_multipart_body_parse(
                                                 &mut mime_bp,
                                             );
                                             if r == MAILIMF_NO_ERROR as libc::c_int {
-                                                r = clist_insert_after(
+                                                clist_insert_end(
                                                     list,
-                                                    (*list).last,
                                                     mime_bp as *mut libc::c_void,
                                                 );
-                                                if r < 0i32 {
-                                                    mailmime_free(mime_bp);
-                                                    res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                                                    current_block = 6612762688763383599;
-                                                    break;
-                                                } else {
-                                                    r = mailmime_multipart_next_parse(
-                                                        message,
-                                                        length,
-                                                        &mut cur_token,
-                                                    );
-                                                    r == MAILIMF_NO_ERROR as libc::c_int;
-                                                }
+                                                r = mailmime_multipart_next_parse(
+                                                    message,
+                                                    length,
+                                                    &mut cur_token,
+                                                );
+                                                r == MAILIMF_NO_ERROR as libc::c_int;
                                             } else if r == MAILIMF_ERROR_PARSE as libc::c_int {
                                                 mailmime_fields_free(mime_fields);
                                                 current_block = 15447629348493591490;
@@ -1244,16 +1211,9 @@ unsafe fn mailmime_preamble_parse(
     return MAILIMF_NO_ERROR as libc::c_int;
 }
 unsafe fn remove_unparsed_mime_headers(mut fields: *mut mailimf_fields) {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
-    cur = (*(*fields).fld_list).first;
-    while !cur.is_null() {
-        let mut field: *mut mailimf_field = 0 as *mut mailimf_field;
+    for (i, cur) in (*(*fields).fld_list).iter().enumerate() {
         let mut delete: libc::c_int = 0;
-        field = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailimf_field;
+        let mut field = *cur as *mut mailimf_field;
         match (*field).fld_type {
             22 => {
                 delete = 0i32;
@@ -1290,23 +1250,11 @@ unsafe fn remove_unparsed_mime_headers(mut fields: *mut mailimf_fields) {
                     delete = 1i32
                 }
                 if 0 != delete {
-                    cur = clist_delete((*fields).fld_list, cur);
+                    clist_delete((*fields).fld_list, i);
                     mailimf_field_free(field);
-                } else {
-                    cur = if !cur.is_null() {
-                        (*cur).next
-                    } else {
-                        0 as *mut clistcell
-                    }
                 }
             }
-            _ => {
-                cur = if !cur.is_null() {
-                    (*cur).next
-                } else {
-                    0 as *mut clistcell
-                }
-            }
+            _ => {}
         }
     }
 }
@@ -1348,11 +1296,13 @@ pub unsafe fn mailmime_get_section(
     mut section: *mut mailmime_section,
     mut result: *mut *mut mailmime,
 ) -> libc::c_int {
-    return mailmime_get_section_list(mime, (*(*section).sec_list).first, result);
+    return mailmime_get_section_list(mime, (*section).sec_list, 0, result);
 }
+
 unsafe fn mailmime_get_section_list(
     mut mime: *mut mailmime,
-    mut list: *mut clistiter,
+    mut list: *mut clist,
+    i: usize,
     mut result: *mut *mut mailmime,
 ) -> libc::c_int {
     let mut id: uint32_t = 0;
@@ -1363,7 +1313,7 @@ unsafe fn mailmime_get_section_list(
         return MAILIMF_NO_ERROR as libc::c_int;
     }
     id = *((if !list.is_null() {
-        (*list).data
+        clist_nth_data(list, i)
     } else {
         0 as *mut libc::c_void
     }) as *mut uint32_t);
@@ -1373,27 +1323,13 @@ unsafe fn mailmime_get_section_list(
         2 => {
             data = clist_nth_data(
                 (*mime).mm_data.mm_multipart.mm_mp_list,
-                id.wrapping_sub(1i32 as libc::c_uint) as libc::c_int,
+                id.wrapping_sub(1i32 as libc::c_uint) as usize,
             ) as *mut mailmime;
             if data.is_null() {
                 return MAILIMF_ERROR_INVAL as libc::c_int;
             }
-            if !if !list.is_null() {
-                (*list).next
-            } else {
-                0 as *mut clistcell
-            }
-            .is_null()
-            {
-                return mailmime_get_section_list(
-                    data,
-                    if !list.is_null() {
-                        (*list).next
-                    } else {
-                        0 as *mut clistcell
-                    },
-                    result,
-                );
+            if !list.is_null() && (*list).len() > i {
+                return mailmime_get_section_list(data, list, i + 1, result);
             } else {
                 *result = data;
                 return MAILIMF_NO_ERROR as libc::c_int;
@@ -1405,20 +1341,12 @@ unsafe fn mailmime_get_section_list(
                 2 => {
                     data = clist_nth_data(
                         (*submime).mm_data.mm_multipart.mm_mp_list,
-                        id.wrapping_sub(1i32 as libc::c_uint) as libc::c_int,
+                        id.wrapping_sub(1i32 as libc::c_uint) as usize,
                     ) as *mut mailmime;
                     if data.is_null() {
                         return MAILIMF_ERROR_INVAL as libc::c_int;
                     }
-                    return mailmime_get_section_list(
-                        data,
-                        if !list.is_null() {
-                            (*list).next
-                        } else {
-                            0 as *mut clistcell
-                        },
-                        result,
-                    );
+                    return mailmime_get_section_list(data, list, i + 1, result);
                 }
                 _ => {
                     if id != 1i32 as libc::c_uint {
@@ -1428,21 +1356,14 @@ unsafe fn mailmime_get_section_list(
                     if data.is_null() {
                         return MAILIMF_ERROR_INVAL as libc::c_int;
                     }
-                    return mailmime_get_section_list(
-                        data,
-                        if !list.is_null() {
-                            (*list).next
-                        } else {
-                            0 as *mut clistcell
-                        },
-                        result,
-                    );
+                    return mailmime_get_section_list(data, list, i + 1, result);
                 }
             }
         }
         _ => return MAILIMF_ERROR_INVAL as libc::c_int,
     };
 }
+
 /* decode */
 pub unsafe fn mailmime_base64_body_parse(
     mut message: *const libc::c_char,
@@ -2172,7 +2093,6 @@ pub unsafe fn mailmime_get_section_id(
     } else {
         let mut id: uint32_t = 0;
         let mut p_id: *mut uint32_t = 0 as *mut uint32_t;
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
         let mut parent: *mut mailmime = 0 as *mut mailmime;
         r = mailmime_get_section_id((*mime).mm_parent, &mut section_id);
         if r != MAILIMF_NO_ERROR as libc::c_int {
@@ -2195,18 +2115,11 @@ pub unsafe fn mailmime_get_section_id(
                                     current_block = 14847554122685898769;
                                 } else {
                                     *p_id = 1i32 as uint32_t;
-                                    r = clist_insert_after(
+                                    clist_insert_end(
                                         (*section_id).sec_list,
-                                        (*(*section_id).sec_list).last,
                                         p_id as *mut libc::c_void,
                                     );
-                                    if r < 0i32 {
-                                        free(p_id as *mut libc::c_void);
-                                        res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                                        current_block = 14847554122685898769;
-                                    } else {
-                                        current_block = 9441801433784995173;
-                                    }
+                                    current_block = 9441801433784995173;
                                 }
                             } else {
                                 current_block = 9441801433784995173;
@@ -2214,22 +2127,11 @@ pub unsafe fn mailmime_get_section_id(
                         }
                         _ => {
                             id = 1i32 as uint32_t;
-                            cur = (*(*parent).mm_data.mm_multipart.mm_mp_list).first;
-                            while !cur.is_null() {
-                                if if !cur.is_null() {
-                                    (*cur).data
-                                } else {
-                                    0 as *mut libc::c_void
-                                } == mime as *mut libc::c_void
-                                {
+                            for cur in (&*(*parent).mm_data.mm_multipart.mm_mp_list).iter() {
+                                if *cur == mime as *mut libc::c_void {
                                     break;
                                 }
                                 id = id.wrapping_add(1);
-                                cur = if !cur.is_null() {
-                                    (*cur).next
-                                } else {
-                                    0 as *mut clistcell
-                                }
                             }
                             p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::size_t)
                                 as *mut uint32_t;
@@ -2238,18 +2140,8 @@ pub unsafe fn mailmime_get_section_id(
                                 current_block = 14847554122685898769;
                             } else {
                                 *p_id = id;
-                                r = clist_insert_after(
-                                    (*section_id).sec_list,
-                                    (*(*section_id).sec_list).last,
-                                    p_id as *mut libc::c_void,
-                                );
-                                if r < 0i32 {
-                                    free(p_id as *mut libc::c_void);
-                                    res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                                    current_block = 14847554122685898769;
-                                } else {
-                                    current_block = 9441801433784995173;
-                                }
+                                clist_insert_end((*section_id).sec_list, p_id as *mut libc::c_void);
+                                current_block = 9441801433784995173;
                             }
                         }
                     }
@@ -2275,18 +2167,11 @@ pub unsafe fn mailmime_get_section_id(
                                     current_block = 14847554122685898769;
                                 } else {
                                     *p_id = 1i32 as uint32_t;
-                                    r = clist_insert_after(
+                                    clist_insert_end(
                                         (*section_id).sec_list,
-                                        (*(*section_id).sec_list).last,
                                         p_id as *mut libc::c_void,
                                     );
-                                    if r < 0i32 {
-                                        free(p_id as *mut libc::c_void);
-                                        res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                                        current_block = 14847554122685898769;
-                                    } else {
-                                        current_block = 9441801433784995173;
-                                    }
+                                    current_block = 9441801433784995173;
                                 }
                             } else {
                                 current_block = 9441801433784995173;
@@ -2294,22 +2179,11 @@ pub unsafe fn mailmime_get_section_id(
                         }
                         _ => {
                             id = 1i32 as uint32_t;
-                            cur = (*(*parent).mm_data.mm_multipart.mm_mp_list).first;
-                            while !cur.is_null() {
-                                if if !cur.is_null() {
-                                    (*cur).data
-                                } else {
-                                    0 as *mut libc::c_void
-                                } == mime as *mut libc::c_void
-                                {
+                            for cur in (&*(*parent).mm_data.mm_multipart.mm_mp_list).iter() {
+                                if *cur == mime as *mut libc::c_void {
                                     break;
                                 }
                                 id = id.wrapping_add(1);
-                                cur = if !cur.is_null() {
-                                    (*cur).next
-                                } else {
-                                    0 as *mut clistcell
-                                }
                             }
                             p_id = malloc(::std::mem::size_of::<uint32_t>() as libc::size_t)
                                 as *mut uint32_t;
@@ -2318,18 +2192,8 @@ pub unsafe fn mailmime_get_section_id(
                                 current_block = 14847554122685898769;
                             } else {
                                 *p_id = id;
-                                r = clist_insert_after(
-                                    (*section_id).sec_list,
-                                    (*(*section_id).sec_list).last,
-                                    p_id as *mut libc::c_void,
-                                );
-                                if r < 0i32 {
-                                    free(p_id as *mut libc::c_void);
-                                    res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                                    current_block = 14847554122685898769;
-                                } else {
-                                    current_block = 9441801433784995173;
-                                }
+                                clist_insert_end((*section_id).sec_list, p_id as *mut libc::c_void);
+                                current_block = 9441801433784995173;
                             }
                         }
                     }

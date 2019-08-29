@@ -29,22 +29,10 @@ pub struct mailmime_single_fields {
 }
 
 pub unsafe fn mailmime_transfer_encoding_get(mut fields: *mut mailmime_fields) -> libc::c_int {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
-    cur = (*(*fields).fld_list).first;
-    while !cur.is_null() {
-        let mut field: *mut mailmime_field = 0 as *mut mailmime_field;
-        field = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailmime_field;
+    for cur in (&*(*fields).fld_list).iter() {
+        let mut field = *cur as *mut mailmime_field;
         if (*field).fld_type == MAILMIME_FIELD_TRANSFER_ENCODING as libc::c_int {
             return (*(*field).fld_data.fld_encoding).enc_type;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     return MAILMIME_MECHANISM_8BIT as libc::c_int;
@@ -95,13 +83,8 @@ pub unsafe fn mailmime_disposition_new_with_data(
                 if parm.is_null() {
                     current_block = 13210718484351940574;
                 } else {
-                    r = clist_insert_after(list, (*list).last, parm as *mut libc::c_void);
-                    if r < 0i32 {
-                        mailmime_disposition_parm_free(parm);
-                        current_block = 13210718484351940574;
-                    } else {
-                        current_block = 4166486009154926805;
-                    }
+                    clist_insert_end(list, parm as *mut libc::c_void);
+                    current_block = 4166486009154926805;
                 }
             } else {
                 current_block = 4166486009154926805;
@@ -121,13 +104,8 @@ pub unsafe fn mailmime_disposition_new_with_data(
                         if parm.is_null() {
                             current_block = 13210718484351940574;
                         } else {
-                            r = clist_insert_after(list, (*list).last, parm as *mut libc::c_void);
-                            if r < 0i32 {
-                                mailmime_disposition_parm_free(parm);
-                                current_block = 13210718484351940574;
-                            } else {
-                                current_block = 12147880666119273379;
-                            }
+                            clist_insert_end(list, parm as *mut libc::c_void);
+                            current_block = 12147880666119273379;
                         }
                     } else {
                         current_block = 12147880666119273379;
@@ -148,17 +126,8 @@ pub unsafe fn mailmime_disposition_new_with_data(
                                 if parm.is_null() {
                                     current_block = 13210718484351940574;
                                 } else {
-                                    r = clist_insert_after(
-                                        list,
-                                        (*list).last,
-                                        parm as *mut libc::c_void,
-                                    );
-                                    if r < 0i32 {
-                                        mailmime_disposition_parm_free(parm);
-                                        current_block = 13210718484351940574;
-                                    } else {
-                                        current_block = 13550086250199790493;
-                                    }
+                                    clist_insert_end(list, parm as *mut libc::c_void);
+                                    current_block = 13550086250199790493;
                                 }
                             } else {
                                 current_block = 13550086250199790493;
@@ -179,17 +148,8 @@ pub unsafe fn mailmime_disposition_new_with_data(
                                         if parm.is_null() {
                                             current_block = 13210718484351940574;
                                         } else {
-                                            r = clist_insert_after(
-                                                list,
-                                                (*list).last,
-                                                parm as *mut libc::c_void,
-                                            );
-                                            if r < 0i32 {
-                                                mailmime_disposition_parm_free(parm);
-                                                current_block = 13210718484351940574;
-                                            } else {
-                                                current_block = 9520865839495247062;
-                                            }
+                                            clist_insert_end(list, parm as *mut libc::c_void);
+                                            current_block = 9520865839495247062;
                                         }
                                     } else {
                                         current_block = 9520865839495247062;
@@ -210,17 +170,11 @@ pub unsafe fn mailmime_disposition_new_with_data(
                                                 if parm.is_null() {
                                                     current_block = 13210718484351940574;
                                                 } else {
-                                                    r = clist_insert_after(
+                                                    clist_insert_end(
                                                         list,
-                                                        (*list).last,
                                                         parm as *mut libc::c_void,
                                                     );
-                                                    if r < 0i32 {
-                                                        mailmime_disposition_parm_free(parm);
-                                                        current_block = 13210718484351940574;
-                                                    } else {
-                                                        current_block = 12199444798915819164;
-                                                    }
+                                                    current_block = 12199444798915819164;
                                                 }
                                             } else {
                                                 current_block = 12199444798915819164;
@@ -275,15 +229,7 @@ pub unsafe fn mailmime_fields_add(
     mut fields: *mut mailmime_fields,
     mut field: *mut mailmime_field,
 ) -> libc::c_int {
-    let mut r: libc::c_int = 0;
-    r = clist_insert_after(
-        (*fields).fld_list,
-        (*(*fields).fld_list).last,
-        field as *mut libc::c_void,
-    );
-    if r < 0i32 {
-        return MAILIMF_ERROR_MEMORY as libc::c_int;
-    }
+    clist_insert_end((*fields).fld_list, field as *mut libc::c_void);
     return MAILIMF_NO_ERROR as libc::c_int;
 }
 
@@ -778,21 +724,11 @@ pub unsafe fn mailmime_new_empty(
                                 match current_block {
                                     13142422523813476356 => {}
                                     _ => {
-                                        r = clist_insert_after(
-                                            parameters,
-                                            (*parameters).last,
-                                            param as *mut libc::c_void,
-                                        );
-                                        if r != 0i32 {
-                                            clist_free(parameters);
-                                            mailmime_parameter_free(param);
-                                            current_block = 13142422523813476356;
-                                        } else {
-                                            if (*content).ct_parameters.is_null() {
-                                                (*content).ct_parameters = parameters
-                                            }
-                                            current_block = 2543120759711851213;
+                                        clist_insert_end(parameters, param as *mut libc::c_void);
+                                        if (*content).ct_parameters.is_null() {
+                                            (*content).ct_parameters = parameters
                                         }
+                                        current_block = 2543120759711851213;
                                     }
                                 }
                             }
@@ -1021,17 +957,13 @@ pub unsafe fn mailmime_add_part(
         (*part).mm_parent_type = MAILMIME_MESSAGE as libc::c_int;
         (*part).mm_parent = build_info
     } else if (*build_info).mm_type == MAILMIME_MULTIPLE as libc::c_int {
-        r = clist_insert_after(
+        clist_insert_end(
             (*build_info).mm_data.mm_multipart.mm_mp_list,
-            (*(*build_info).mm_data.mm_multipart.mm_mp_list).last,
             part as *mut libc::c_void,
         );
-        if r != 0i32 {
-            return MAILIMF_ERROR_MEMORY as libc::c_int;
-        }
         (*part).mm_parent_type = MAILMIME_MULTIPLE as libc::c_int;
         (*part).mm_parent = build_info;
-        (*part).mm_multipart_pos = (*(*build_info).mm_data.mm_multipart.mm_mp_list).last
+        (*part).mm_multipart_list_pos = (*(*build_info).mm_data.mm_multipart.mm_mp_list).len() - 1;
     } else {
         return MAILIMF_ERROR_INVAL as libc::c_int;
     }
@@ -1053,7 +985,7 @@ pub unsafe fn mailmime_remove_part(mut mime: *mut mailmime) {
             (*mime).mm_parent = 0 as *mut mailmime;
             clist_delete(
                 (*parent).mm_data.mm_multipart.mm_mp_list,
-                (*mime).mm_multipart_pos,
+                (*mime).mm_multipart_list_pos,
             );
         }
         _ => {}
@@ -1072,7 +1004,6 @@ pub unsafe fn mailmime_single_fields_init(
     mut fld_fields: *mut mailmime_fields,
     mut fld_content: *mut mailmime_content,
 ) {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     memset(
         single_fields as *mut libc::c_void,
         0i32,
@@ -1084,14 +1015,8 @@ pub unsafe fn mailmime_single_fields_init(
     if fld_fields.is_null() {
         return;
     }
-    cur = (*(*fld_fields).fld_list).first;
-    while !cur.is_null() {
-        let mut field: *mut mailmime_field = 0 as *mut mailmime_field;
-        field = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailmime_field;
+    for cur in (*(*fld_fields).fld_list).iter() {
+        let mut field = *cur as *mut mailmime_field;
         match (*field).fld_type {
             1 => {
                 mailmime_content_single_fields_init(single_fields, (*field).fld_data.fld_content);
@@ -1110,27 +1035,16 @@ pub unsafe fn mailmime_single_fields_init(
             8 => (*single_fields).fld_location = (*field).fld_data.fld_location,
             _ => {}
         }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
-        }
     }
 }
+
 unsafe fn mailmime_disposition_single_fields_init(
     mut single_fields: *mut mailmime_single_fields,
     mut fld_disposition: *mut mailmime_disposition,
 ) {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     (*single_fields).fld_disposition = fld_disposition;
-    cur = (*(*fld_disposition).dsp_parms).first;
-    while !cur.is_null() {
-        let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
-        param = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailmime_disposition_parm;
+    for cur in (&*(*fld_disposition).dsp_parms).iter() {
+        let mut param = *cur as *mut mailmime_disposition_parm;
         match (*param).pa_type {
             0 => (*single_fields).fld_disposition_filename = (*param).pa_data.pa_filename,
             1 => (*single_fields).fld_disposition_creation_date = (*param).pa_data.pa_creation_date,
@@ -1142,27 +1056,16 @@ unsafe fn mailmime_disposition_single_fields_init(
             4 => (*single_fields).fld_disposition_size = (*param).pa_data.pa_size,
             _ => {}
         }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
-        }
     }
 }
+
 unsafe fn mailmime_content_single_fields_init(
     mut single_fields: *mut mailmime_single_fields,
     mut fld_content: *mut mailmime_content,
 ) {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     (*single_fields).fld_content = fld_content;
-    cur = (*(*fld_content).ct_parameters).first;
-    while !cur.is_null() {
-        let mut param: *mut mailmime_parameter = 0 as *mut mailmime_parameter;
-        param = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailmime_parameter;
+    for cur in (&*(*fld_content).ct_parameters).iter() {
+        let mut param = *cur as *mut mailmime_parameter;
         if strcasecmp(
             (*param).pa_name,
             b"boundary\x00" as *const u8 as *const libc::c_char,
@@ -1183,11 +1086,6 @@ unsafe fn mailmime_content_single_fields_init(
         ) == 0i32
         {
             (*single_fields).fld_content_name = (*param).pa_value
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
 }
@@ -1327,9 +1225,9 @@ pub unsafe fn mailmime_smart_remove_part(mut mime: *mut mailmime) -> libc::c_int
                 }
             }
             2 => {
-                if !((*(*mime).mm_data.mm_multipart.mm_mp_list).first
-                    == (*(*mime).mm_data.mm_multipart.mm_mp_list).last
-                    && (*(*mime).mm_data.mm_multipart.mm_mp_list).last.is_null())
+                if !((*(*mime).mm_data.mm_multipart.mm_mp_list).first()
+                    == (*(*mime).mm_data.mm_multipart.mm_mp_list).last()
+                    && (*(*mime).mm_data.mm_multipart.mm_mp_list).last().is_null())
                 {
                     res = MAILIMF_ERROR_INVAL as libc::c_int
                 } else {

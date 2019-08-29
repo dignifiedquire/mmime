@@ -92,7 +92,6 @@ mod tests {
     }
 
     unsafe fn display_mime(mut mime: *mut mailmime) {
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
         println!("{}", (*mime).mm_type);
 
         match (*mime).mm_type {
@@ -106,7 +105,7 @@ mod tests {
             _ => {}
         }
         if !(*mime).mm_mime_fields.is_null() {
-            if !(*(*(*mime).mm_mime_fields).fld_list).first.is_null() {
+            if !(*(*(*mime).mm_mime_fields).fld_list).first().is_null() {
                 print!("MIME headers begin");
                 display_mime_fields((*mime).mm_mime_fields);
                 println!("MIME headers end");
@@ -118,26 +117,14 @@ mod tests {
                 display_mime_data((*mime).mm_data.mm_single);
             }
             2 => {
-                cur = (*(*mime).mm_data.mm_multipart.mm_mp_list).first;
-                while !cur.is_null() {
-                    display_mime(
-                        (if !cur.is_null() {
-                            (*cur).data
-                        } else {
-                            0 as *mut libc::c_void
-                        }) as *mut mailmime,
-                    );
-                    cur = if !cur.is_null() {
-                        (*cur).next
-                    } else {
-                        0 as *mut clistcell
-                    }
+                for cur in (&*(*mime).mm_data.mm_multipart.mm_mp_list).iter() {
+                    display_mime(*cur as *mut mailmime);
                 }
             }
             3 => {
                 if !(*mime).mm_data.mm_message.mm_fields.is_null() {
                     if !(*(*(*mime).mm_data.mm_message.mm_fields).fld_list)
-                        .first
+                        .first()
                         .is_null()
                     {
                         println!("headers begin");
@@ -242,23 +229,12 @@ mod tests {
         };
     }
     unsafe fn display_mime_disposition(mut disposition: *mut mailmime_disposition) {
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
-        cur = (*(*disposition).dsp_parms).first;
-        while !cur.is_null() {
-            let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
-            param = (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailmime_disposition_parm;
+        for cur in (*(*disposition).dsp_parms).iter() {
+            let mut param = *cur as *mut mailmime_disposition_parm;
             display_mime_dsp_parm(param);
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
-            }
         }
     }
+
     unsafe fn display_mime_field(mut field: *mut mailmime_field) {
         match (*field).fld_type {
             1 => {
@@ -273,23 +249,12 @@ mod tests {
         };
     }
     unsafe fn display_mime_fields(mut fields: *mut mailmime_fields) {
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
-        cur = (*(*fields).fld_list).first;
-        while !cur.is_null() {
-            let mut field: *mut mailmime_field = 0 as *mut mailmime_field;
-            field = (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailmime_field;
+        for cur in (*(*fields).fld_list).iter() {
+            let mut field = *cur as *mut mailmime_field;
             display_mime_field(field);
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
-            }
         }
     }
+
     unsafe fn display_date_time(mut d: *mut mailimf_date_time) {
         print!(
             "{:02}/{:02}/{:02} {:02}:{:02}:{:02} +{:04}",
@@ -315,52 +280,22 @@ mod tests {
         print!("<{}>", CStr::from_ptr((*mb).mb_addr_spec).to_str().unwrap());
     }
     unsafe fn display_mailbox_list(mut mb_list: *mut mailimf_mailbox_list) {
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
-        cur = (*(*mb_list).mb_list).first;
-        while !cur.is_null() {
-            let mut mb: *mut mailimf_mailbox = 0 as *mut mailimf_mailbox;
-            mb = (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailimf_mailbox;
+        for (i, cur) in (*(*mb_list).mb_list).iter().enumerate() {
+            let mut mb = *cur as *mut mailimf_mailbox;
             display_mailbox(mb);
-            if !if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
-            }
-            .is_null()
-            {
+            if i < (*(*mb_list).mb_list).len() - 1 {
                 print!(", ");
-            }
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
             }
         }
     }
     unsafe fn display_group(mut group: *mut mailimf_group) {
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
         print!(
             "{}: ",
             CStr::from_ptr((*group).grp_display_name).to_str().unwrap()
         );
-        cur = (*(*(*group).grp_mb_list).mb_list).first;
-        while !cur.is_null() {
-            let mut mb: *mut mailimf_mailbox = 0 as *mut mailimf_mailbox;
-            mb = (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailimf_mailbox;
+        for cur in (*(*(*group).grp_mb_list).mb_list).iter() {
+            let mut mb = *cur as *mut mailimf_mailbox;
             display_mailbox(mb);
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
-            }
         }
         print!("; ");
     }
@@ -376,29 +311,12 @@ mod tests {
         };
     }
     unsafe fn display_address_list(mut addr_list: *mut mailimf_address_list) {
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
-        cur = (*(*addr_list).ad_list).first;
-        while !cur.is_null() {
-            let mut addr: *mut mailimf_address = 0 as *mut mailimf_address;
-            addr = (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailimf_address;
+        for (i, cur) in (*(*addr_list).ad_list).iter().enumerate() {
+            let mut addr = *cur as *mut mailimf_address;
             display_address(addr);
-            if !if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
-            }
-            .is_null()
-            {
+
+            if i < (*(*addr_list).ad_list).len() - 1 {
                 print!(", ");
-            }
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
             }
         }
     }
@@ -453,21 +371,9 @@ mod tests {
         };
     }
     unsafe fn display_fields(mut fields: *mut mailimf_fields) {
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
-        cur = (*(*fields).fld_list).first;
-        while !cur.is_null() {
-            let mut f: *mut mailimf_field = 0 as *mut mailimf_field;
-            f = (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailimf_field;
+        for cur in (*(*fields).fld_list).iter() {
+            let mut f = *cur as *mut mailimf_field;
             display_field(f);
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
-            }
         }
     }
 }
