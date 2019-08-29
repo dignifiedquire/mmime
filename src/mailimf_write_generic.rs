@@ -170,27 +170,10 @@ pub unsafe fn mailimf_fields_write_driver(
     mut col: *mut libc::c_int,
     mut fields: *mut mailimf_fields,
 ) -> libc::c_int {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
-    cur = (*(*fields).fld_list).first;
-    while !cur.is_null() {
-        let mut r: libc::c_int = 0;
-        r = mailimf_field_write_driver(
-            do_write,
-            data,
-            col,
-            (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailimf_field,
-        );
+    for cur in (&*(*fields).fld_list).iter() {
+        let r = mailimf_field_write_driver(do_write, data, col, *cur as *mut mailimf_field);
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     return MAILIMF_NO_ERROR as libc::c_int;
@@ -524,7 +507,6 @@ unsafe fn mailimf_keywords_write_driver(
     mut keywords: *mut mailimf_keywords,
 ) -> libc::c_int {
     let mut r: libc::c_int = 0;
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     let mut first: libc::c_int = 0;
     r = mailimf_string_write_driver(
         do_write,
@@ -537,15 +519,9 @@ unsafe fn mailimf_keywords_write_driver(
         return r;
     }
     first = 1i32;
-    cur = (*(*keywords).kw_list).first;
-    while !cur.is_null() {
-        let mut keyword: *mut libc::c_char = 0 as *mut libc::c_char;
+    for cur in (*(*keywords).kw_list).iter() {
         let mut len: size_t = 0;
-        keyword = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut libc::c_char;
+        let mut keyword = *cur as *mut libc::c_char;
         len = strlen(keyword);
         if 0 == first {
             r = mailimf_string_write_driver(
@@ -564,11 +540,6 @@ unsafe fn mailimf_keywords_write_driver(
         r = mailimf_header_string_write_driver(do_write, data, col, keyword, len);
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     r = mailimf_string_write_driver(
@@ -708,19 +679,12 @@ unsafe fn mailimf_msg_id_list_write_driver(
     mut col: *mut libc::c_int,
     mut mid_list: *mut clist,
 ) -> libc::c_int {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     let mut r: libc::c_int = 0;
     let mut first: libc::c_int = 0;
     first = 1i32;
-    cur = (*mid_list).first;
-    while !cur.is_null() {
-        let mut msgid: *mut libc::c_char = 0 as *mut libc::c_char;
+    for cur in (&*mid_list).iter() {
         let mut len: size_t = 0;
-        msgid = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut libc::c_char;
+        let mut msgid = *cur as *mut libc::c_char;
         len = strlen(msgid);
         if 0 == first {
             if *col > 1i32 {
@@ -776,11 +740,6 @@ unsafe fn mailimf_msg_id_list_write_driver(
         );
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     return MAILIMF_NO_ERROR as libc::c_int;
@@ -926,18 +885,11 @@ pub unsafe fn mailimf_address_list_write_driver(
     mut col: *mut libc::c_int,
     mut addr_list: *mut mailimf_address_list,
 ) -> libc::c_int {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     let mut r: libc::c_int = 0;
     let mut first: libc::c_int = 0;
     first = 1i32;
-    cur = (*(*addr_list).ad_list).first;
-    while !cur.is_null() {
-        let mut addr: *mut mailimf_address = 0 as *mut mailimf_address;
-        addr = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailimf_address;
+    for cur in (&*(*addr_list).ad_list).iter() {
+        let mut addr = *cur as *mut mailimf_address;
         if 0 == first {
             r = mailimf_string_write_driver(
                 do_write,
@@ -955,11 +907,6 @@ pub unsafe fn mailimf_address_list_write_driver(
         r = mailimf_address_write_driver(do_write, data, col, addr);
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     return MAILIMF_NO_ERROR as libc::c_int;
@@ -1046,18 +993,11 @@ pub unsafe fn mailimf_mailbox_list_write_driver(
     mut col: *mut libc::c_int,
     mut mb_list: *mut mailimf_mailbox_list,
 ) -> libc::c_int {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     let mut r: libc::c_int = 0;
     let mut first: libc::c_int = 0;
     first = 1i32;
-    cur = (*(*mb_list).mb_list).first;
-    while !cur.is_null() {
-        let mut mb: *mut mailimf_mailbox = 0 as *mut mailimf_mailbox;
-        mb = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailimf_mailbox;
+    for cur in (&*(*mb_list).mb_list).iter() {
+        let mut mb = *cur as *mut mailimf_mailbox;
         if 0 == first {
             r = mailimf_string_write_driver(
                 do_write,
@@ -1075,11 +1015,6 @@ pub unsafe fn mailimf_mailbox_list_write_driver(
         r = mailimf_mailbox_write_driver(do_write, data, col, mb);
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     return MAILIMF_NO_ERROR as libc::c_int;
@@ -1999,26 +1934,14 @@ pub unsafe fn mailimf_envelope_fields_write_driver(
     mut col: *mut libc::c_int,
     mut fields: *mut mailimf_fields,
 ) -> libc::c_int {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
-    cur = (*(*fields).fld_list).first;
-    while !cur.is_null() {
+    for cur in (&*(*fields).fld_list).iter() {
         let mut r: libc::c_int = 0;
-        let mut field: *mut mailimf_field = 0 as *mut mailimf_field;
-        field = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut mailimf_field;
+        let mut field = *cur as *mut mailimf_field;
         if (*field).fld_type != MAILIMF_FIELD_OPTIONAL_FIELD as libc::c_int {
             r = mailimf_field_write_driver(do_write, data, col, field);
             if r != MAILIMF_NO_ERROR as libc::c_int {
                 return r;
             }
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     return MAILIMF_NO_ERROR as libc::c_int;

@@ -119,18 +119,11 @@ pub unsafe fn mailmime_content_parse(
                                     &mut parameter,
                                 );
                                 if r == MAILIMF_NO_ERROR as libc::c_int {
-                                    r = clist_insert_after(
+                                    clist_insert_end(
                                         parameters_list,
-                                        (*parameters_list).last,
                                         parameter as *mut libc::c_void,
                                     );
-                                    if !(r < 0i32) {
-                                        continue;
-                                    }
-                                    mailmime_parameter_free(parameter);
-                                    res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                                    current_block = 5731074241326334034;
-                                    break;
+                                    continue;
                                 } else if r == MAILIMF_ERROR_PARSE as libc::c_int {
                                     cur_token = final_token;
                                     current_block = 12497913735442871383;
@@ -899,14 +892,8 @@ pub unsafe fn mailmime_language_parse(
             if r == MAILIMF_NO_ERROR as libc::c_int {
                 r = mailimf_atom_parse(message, length, &mut cur_token, &mut atom);
                 if r == MAILIMF_NO_ERROR as libc::c_int {
-                    r = clist_insert_after(list, (*list).last, atom as *mut libc::c_void);
-                    if !(r < 0i32) {
-                        continue;
-                    }
-                    mailimf_atom_free(atom);
-                    res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                    current_block = 14533943604180559553;
-                    break;
+                    clist_insert_end(list, atom as *mut libc::c_void);
+                    continue;
                 } else {
                     /* do nothing */
                     if r == MAILIMF_ERROR_PARSE as libc::c_int {
@@ -1062,8 +1049,7 @@ pub unsafe fn mailmime_fields_parse(
     mut fields: *mut mailimf_fields,
     mut result: *mut *mut mailmime_fields,
 ) -> libc::c_int {
-    let mut current_block: u64;
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
+    let mut current_block: u64 = 0;
     let mut mime_fields: *mut mailmime_fields = 0 as *mut mailmime_fields;
     let mut list: *mut clist = 0 as *mut clist;
     let mut r: libc::c_int = 0;
@@ -1072,29 +1058,13 @@ pub unsafe fn mailmime_fields_parse(
     if list.is_null() {
         res = MAILIMF_ERROR_MEMORY as libc::c_int
     } else {
-        cur = (*(*fields).fld_list).first;
-        loop {
-            if cur.is_null() {
-                current_block = 1109700713171191020;
-                break;
-            }
-            let mut field: *mut mailimf_field = 0 as *mut mailimf_field;
+        for cur in (&*(*fields).fld_list).iter() {
             let mut mime_field: *mut mailmime_field = 0 as *mut mailmime_field;
-            field = (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailimf_field;
+            let mut field = *cur as *mut mailimf_field;
             if (*field).fld_type == MAILIMF_FIELD_OPTIONAL_FIELD as libc::c_int {
                 r = mailmime_field_parse((*field).fld_data.fld_optional_field, &mut mime_field);
                 if r == MAILIMF_NO_ERROR as libc::c_int {
-                    r = clist_insert_after(list, (*list).last, mime_field as *mut libc::c_void);
-                    if r < 0i32 {
-                        mailmime_field_free(mime_field);
-                        res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                        current_block = 17592539310030730040;
-                        break;
-                    }
+                    clist_insert_end(list, mime_field as *mut libc::c_void);
                 } else if !(r == MAILIMF_ERROR_PARSE as libc::c_int) {
                     /* do nothing */
                     res = r;
@@ -1102,15 +1072,10 @@ pub unsafe fn mailmime_fields_parse(
                     break;
                 }
             }
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
-            }
         }
         match current_block {
             1109700713171191020 => {
-                if (*list).first.is_null() {
+                if (*list).is_empty() {
                     res = MAILIMF_ERROR_PARSE as libc::c_int
                 } else {
                     mime_fields = mailmime_fields_new(list);

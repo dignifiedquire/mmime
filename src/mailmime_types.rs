@@ -167,7 +167,8 @@ pub const MAILMIME_NONE: unnamed_7 = 0;
 pub struct mailmime {
     pub mm_parent_type: libc::c_int,
     pub mm_parent: *mut mailmime,
-    pub mm_multipart_pos: *mut clistiter,
+    pub mm_multipart_list: *mut clist,
+    pub mm_multipart_list_pos: usize,
     pub mm_type: libc::c_int,
     pub mm_mime_start: *const libc::c_char,
     pub mm_length: size_t,
@@ -659,14 +660,14 @@ pub unsafe fn mailmime_new(
     mut mm_msg_mime: *mut mailmime,
 ) -> *mut mailmime {
     let mut mime: *mut mailmime = 0 as *mut mailmime;
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     mime = malloc(::std::mem::size_of::<mailmime>() as libc::size_t) as *mut mailmime;
     if mime.is_null() {
         return 0 as *mut mailmime;
     }
     (*mime).mm_parent = 0 as *mut mailmime;
     (*mime).mm_parent_type = MAILMIME_NONE as libc::c_int;
-    (*mime).mm_multipart_pos = 0 as *mut clistiter;
+    (*mime).mm_multipart_list = 0 as *mut clist;
+    (*mime).mm_multipart_list_pos = 0;
     (*mime).mm_type = mm_type;
     (*mime).mm_mime_start = mm_mime_start;
     (*mime).mm_length = mm_length;
@@ -679,22 +680,11 @@ pub unsafe fn mailmime_new(
             (*mime).mm_data.mm_multipart.mm_preamble = mm_preamble;
             (*mime).mm_data.mm_multipart.mm_epilogue = mm_epilogue;
             (*mime).mm_data.mm_multipart.mm_mp_list = mm_mp_list;
-            cur = (*mm_mp_list).first;
-            while !cur.is_null() {
-                let mut submime: *mut mailmime = 0 as *mut mailmime;
-                submime = (if !cur.is_null() {
-                    (*cur).data
-                } else {
-                    0 as *mut libc::c_void
-                }) as *mut mailmime;
+            for (i, cur) in (*mm_mp_list).iter().enumerate() {
+                let submime = *cur as *mut mailmime;
                 (*submime).mm_parent = mime;
                 (*submime).mm_parent_type = MAILMIME_MULTIPLE as libc::c_int;
-                (*submime).mm_multipart_pos = cur;
-                cur = if !cur.is_null() {
-                    (*cur).next
-                } else {
-                    0 as *mut clistcell
-                }
+                (*submime).mm_multipart_list_pos = i;
             }
         }
         3 => {

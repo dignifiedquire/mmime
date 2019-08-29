@@ -53,13 +53,8 @@ pub unsafe fn mailmime_disposition_parse(
                         &mut param,
                     );
                     if r == MAILIMF_NO_ERROR as libc::c_int {
-                        r = clist_insert_after(list, (*list).last, param as *mut libc::c_void);
-                        if !(r < 0i32) {
-                            continue;
-                        }
-                        res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                        current_block = 18290070879695007868;
-                        break;
+                        clist_insert_end(list, param as *mut libc::c_void);
+                        continue;
                     } else if r == MAILIMF_ERROR_PARSE as libc::c_int {
                         cur_token = final_token;
                         current_block = 652864300344834934;
