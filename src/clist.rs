@@ -19,6 +19,32 @@ pub struct clist {
 }
 
 pub type clistiter = clistcell;
+pub struct CListIterator {
+    cur: *mut clistiter,
+}
+impl Iterator for CListIterator {
+    type Item = *mut libc::c_void;
+    fn next(&mut self) -> Option<Self::Item> {
+        unsafe {
+            if self.cur.is_null() {
+                None
+            } else {
+                let data = (*self.cur).data;
+                self.cur = (*self.cur).next;
+                Some(data)
+            }
+        }
+    }
+}
+
+impl IntoIterator for &clist {
+    type Item = *mut libc::c_void;
+    type IntoIter = CListIterator;
+    fn into_iter(self) -> Self::IntoIter {
+        return CListIterator { cur: self.first };
+    }
+}
+
 pub type clist_func =
     Option<unsafe extern "C" fn(_: *mut libc::c_void, _: *mut libc::c_void) -> ()>;
 
@@ -198,4 +224,27 @@ unsafe fn internal_clist_nth(mut lst: *mut clist, mut indx: libc::c_int) -> *mut
 
 pub unsafe fn clist_nth(mut lst: *mut clist, mut indx: libc::c_int) -> *mut clistiter {
     return internal_clist_nth(lst, indx);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ptr;
+    #[test]
+    fn test_clist_iterator() {
+        unsafe {
+            let mut c = clist_new();
+            assert!(!c.is_null());
+            clist_insert_after(c, ptr::null_mut(), clist_nth as _);
+            assert_eq!((*c).count, 1);
+
+            /* Only one iteration */
+            for data in &*c {
+                assert_eq!(data, clist_nth as _);
+            }
+            assert_eq!((*c).count, 1);
+
+            clist_free(c);
+        }
+    }
 }
