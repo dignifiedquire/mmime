@@ -31,8 +31,8 @@ impl std::ops::Deref for clist {
 
 impl Drop for clist {
     fn drop(&mut self) {
-        for el in self.0.iter() {
-            unsafe { free(*el) };
+        for &el in &self.0 {
+            unsafe { free(el) };
         }
     }
 }
