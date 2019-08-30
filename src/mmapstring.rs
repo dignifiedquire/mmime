@@ -6,13 +6,14 @@ use libc;
 
 use crate::other::*;
 
+pub const TMPDIR: &'static str = "/tmp";
+
 lazy_static! {
     static ref hashtable: Mutex<HashMap<Vec<u8>, Box<MMAPString>>> = Mutex::new(HashMap::new());
 }
 
-unsafe impl Send for MMAPString {}
+static mut mmap_string_ceil: size_t = (8i32 * 1024i32 * 1024i32) as size_t;
 
-#[repr(C)]
 pub struct MMAPString {
     pub str_0: *mut libc::c_char,
     pub len: size_t,
@@ -20,6 +21,8 @@ pub struct MMAPString {
     pub fd: libc::c_int,
     pub mmapped_size: size_t,
 }
+
+unsafe impl Send for MMAPString {}
 
 impl Default for MMAPString {
     fn default() -> Self {
@@ -33,15 +36,16 @@ impl Default for MMAPString {
     }
 }
 
-pub const TMPDIR: &'static str = "/tmp";
+impl Drop for MMAPString {
+    fn drop(&mut self) {
+        unsafe {
+            free(self.str_0 as *mut _);
+        }
+    }
+}
 
 pub unsafe fn mmap_string_new(mut init: *const libc::c_char) -> *mut MMAPString {
-    let mut string = Box::into_raw(Box::new(MMAPString::default()));
-    string = mmap_string_sized_new(if !init.is_null() {
-        strlen(init).wrapping_add(2i32 as libc::size_t)
-    } else {
-        2i32 as libc::size_t
-    });
+    let string = mmap_string_sized_new(if !init.is_null() { strlen(init) + 2 } else { 2 });
     if !init.is_null() {
         mmap_string_append(string, init);
     }
@@ -62,7 +66,7 @@ pub unsafe fn mmap_string_insert_len(
     mut len: size_t,
 ) -> *mut MMAPString {
     if mmap_string_maybe_expand(string, len).is_null() {
-        return 0 as *mut MMAPString;
+        return std::ptr::null_mut();
     }
     if pos < (*string).len {
         memmove(
@@ -78,8 +82,9 @@ pub unsafe fn mmap_string_insert_len(
     );
     (*string).len = ((*string).len as libc::size_t).wrapping_add(len) as size_t as size_t;
     *(*string).str_0.offset((*string).len as isize) = 0i32 as libc::c_char;
-    return string;
+    string
 }
+
 unsafe fn mmap_string_maybe_expand(
     mut string: *mut MMAPString,
     mut len: size_t,
@@ -103,9 +108,7 @@ unsafe fn mmap_string_maybe_expand(
     }
     return string;
 }
-/* Strings.
- */
-/* SEB */
+
 unsafe fn mmap_string_realloc_memory(mut string: *mut MMAPString) -> *mut MMAPString {
     let mut tmp: *mut libc::c_char = 0 as *mut libc::c_char;
     tmp = realloc(
@@ -119,9 +122,8 @@ unsafe fn mmap_string_realloc_memory(mut string: *mut MMAPString) -> *mut MMAPSt
     }
     return string;
 }
-/* MMAPString */
-#[inline]
-unsafe fn nearest_power(mut base: size_t, mut num: size_t) -> size_t {
+
+fn nearest_power(mut base: size_t, mut num: size_t) -> size_t {
     if num > (-1i32 as size_t).wrapping_div(2i32 as libc::size_t) {
         return -1i32 as size_t;
     } else {
@@ -155,26 +157,22 @@ pub unsafe fn mmap_string_sized_new(mut dfl_size: size_t) -> *mut MMAPString {
         return 0 as *mut MMAPString;
     }
     *(*string).str_0.offset(0isize) = 0i32 as libc::c_char;
-    return string;
+    string
 }
 
 pub unsafe fn mmap_string_new_len(
     mut init: *const libc::c_char,
     mut len: size_t,
 ) -> *mut MMAPString {
-    let mut string: *mut MMAPString = 0 as *mut MMAPString;
     if len <= 0i32 as libc::size_t {
         return mmap_string_new(b"\x00" as *const u8 as *const libc::c_char);
-    } else {
-        string = mmap_string_sized_new(len);
-        if string.is_null() {
-            return string;
-        }
-        if !init.is_null() {
-            mmap_string_append_len(string, init, len);
-        }
-        return string;
-    };
+    }
+
+    let string = mmap_string_sized_new(len);
+    if !init.is_null() {
+        mmap_string_append_len(string, init, len);
+    }
+    string
 }
 
 pub unsafe fn mmap_string_append_len(
@@ -182,15 +180,14 @@ pub unsafe fn mmap_string_append_len(
     mut val: *const libc::c_char,
     mut len: size_t,
 ) -> *mut MMAPString {
-    return mmap_string_insert_len(string, (*string).len, val, len);
+    mmap_string_insert_len(string, (*string).len, val, len)
 }
 
-pub unsafe fn mmap_string_free(mut string: *mut MMAPString) {
+pub unsafe fn mmap_string_free(string: *mut MMAPString) {
     if string.is_null() {
         return;
     }
-    free((*string).str_0 as *mut libc::c_void);
-    free(string as *mut libc::c_void);
+    let _ = Box::from_raw(string);
 }
 
 pub unsafe fn mmap_string_assign(
@@ -199,9 +196,9 @@ pub unsafe fn mmap_string_assign(
 ) -> *mut MMAPString {
     mmap_string_truncate(string, 0i32 as size_t);
     if mmap_string_append(string, rval).is_null() {
-        return 0 as *mut MMAPString;
+        return std::ptr::null_mut();
     }
-    return string;
+    string
 }
 
 pub unsafe fn mmap_string_truncate(
@@ -214,7 +211,7 @@ pub unsafe fn mmap_string_truncate(
         (*string).len
     };
     *(*string).str_0.offset((*string).len as isize) = 0i32 as libc::c_char;
-    return string;
+    string
 }
 
 pub unsafe fn mmap_string_set_size(
@@ -223,19 +220,19 @@ pub unsafe fn mmap_string_set_size(
 ) -> *mut MMAPString {
     if len >= (*string).allocated_len {
         if mmap_string_maybe_expand(string, len.wrapping_sub((*string).len)).is_null() {
-            return 0 as *mut MMAPString;
+            return std::ptr::null_mut();
         }
     }
     (*string).len = len;
     *(*string).str_0.offset(len as isize) = 0i32 as libc::c_char;
-    return string;
+    string
 }
 
 pub unsafe fn mmap_string_append_c(
     mut string: *mut MMAPString,
     mut c: libc::c_char,
 ) -> *mut MMAPString {
-    return mmap_string_insert_c(string, (*string).len, c);
+    mmap_string_insert_c(string, (*string).len, c)
 }
 
 pub unsafe fn mmap_string_insert_c(
@@ -244,8 +241,9 @@ pub unsafe fn mmap_string_insert_c(
     mut c: libc::c_char,
 ) -> *mut MMAPString {
     if mmap_string_maybe_expand(string, 1i32 as size_t).is_null() {
-        return 0 as *mut MMAPString;
+        return std::ptr::null_mut();
     }
+
     if pos < (*string).len {
         memmove(
             (*string).str_0.offset(pos as isize).offset(1isize) as *mut libc::c_void,
@@ -257,21 +255,21 @@ pub unsafe fn mmap_string_insert_c(
     (*string).len =
         ((*string).len as libc::size_t).wrapping_add(1i32 as libc::size_t) as size_t as size_t;
     *(*string).str_0.offset((*string).len as isize) = 0i32 as libc::c_char;
-    return string;
+    string
 }
 
 pub unsafe fn mmap_string_prepend(
     mut string: *mut MMAPString,
     mut val: *const libc::c_char,
 ) -> *mut MMAPString {
-    return mmap_string_insert_len(string, 0i32 as size_t, val, strlen(val));
+    mmap_string_insert_len(string, 0i32 as size_t, val, strlen(val))
 }
 
 pub unsafe fn mmap_string_prepend_c(
     mut string: *mut MMAPString,
     mut c: libc::c_char,
 ) -> *mut MMAPString {
-    return mmap_string_insert_c(string, 0i32 as size_t, c);
+    mmap_string_insert_c(string, 0i32 as size_t, c)
 }
 
 pub unsafe fn mmap_string_prepend_len(
@@ -279,7 +277,7 @@ pub unsafe fn mmap_string_prepend_len(
     mut val: *const libc::c_char,
     mut len: size_t,
 ) -> *mut MMAPString {
-    return mmap_string_insert_len(string, 0i32 as size_t, val, len);
+    mmap_string_insert_len(string, 0i32 as size_t, val, len)
 }
 
 pub unsafe fn mmap_string_insert(
@@ -287,7 +285,7 @@ pub unsafe fn mmap_string_insert(
     mut pos: size_t,
     mut val: *const libc::c_char,
 ) -> *mut MMAPString {
-    return mmap_string_insert_len(string, pos, val, strlen(val));
+    mmap_string_insert_len(string, pos, val, strlen(val))
 }
 
 pub unsafe fn mmap_string_erase(
@@ -304,13 +302,12 @@ pub unsafe fn mmap_string_erase(
     }
     (*string).len = ((*string).len as libc::size_t).wrapping_sub(len) as size_t as size_t;
     *(*string).str_0.offset((*string).len as isize) = 0i32 as libc::c_char;
-    return string;
+    string
 }
 
 pub unsafe fn mmap_string_set_ceil(mut ceil: size_t) {
     mmap_string_ceil = ceil;
 }
-static mut mmap_string_ceil: size_t = (8i32 * 1024i32 * 1024i32) as size_t;
 
 pub unsafe fn mmap_string_ref(string: *mut MMAPString) -> libc::c_int {
     let key = std::ffi::CStr::from_ptr((*string).str_0)
@@ -324,19 +321,17 @@ pub unsafe fn mmap_string_ref(string: *mut MMAPString) -> libc::c_int {
 }
 
 pub unsafe fn mmap_string_unref(mut str: *mut libc::c_char) -> libc::c_int {
-    let mut string: *mut MMAPString = 0 as *mut MMAPString;
-    let mut r: libc::c_int = 0;
     if str.is_null() {
-        return -1i32;
+        return -1;
     }
 
     let key = std::ffi::CStr::from_ptr(str).to_bytes().to_vec();
 
-    if let Some(data) = hashtable.lock().unwrap().remove(&key) {
-        string = Box::into_raw(data);
+    let string = if let Some(data) = hashtable.lock().unwrap().remove(&key) {
+        Box::into_raw(data)
     } else {
-        string = 0 as *mut MMAPString;
-    }
+        std::ptr::null_mut()
+    };
 
     if !string.is_null() {
         hashtable.lock().unwrap().remove(&key);
