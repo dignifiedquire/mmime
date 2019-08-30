@@ -7,8 +7,8 @@ use crate::mailmime_types::*;
 use crate::mailmime_types_helper::*;
 
 pub(crate) use libc::{
-    calloc, close, free, isalpha, isdigit, malloc, memcmp, memcpy, memmove, memset, realloc,
-    strcpy, strlen, strncmp, strncpy,
+    close, free, isalpha, isdigit, malloc, memcpy, memmove, memset, realloc, strcpy, strlen,
+    strncmp, strncpy,
 };
 
 pub(crate) unsafe fn strcasecmp(s1: *const libc::c_char, s2: *const libc::c_char) -> libc::c_int {

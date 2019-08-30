@@ -12,7 +12,6 @@
 #![feature(ptr_wrapping_offset_from)]
 
 pub mod charconv;
-pub mod chash;
 pub mod clist;
 pub mod mailimf;
 pub mod mailimf_types;
@@ -30,7 +29,6 @@ pub mod mmapstring;
 pub mod other;
 
 pub use self::charconv::*;
-pub use self::chash::*;
 pub use self::clist::*;
 pub use self::mailimf::*;
 pub use self::mailimf_types::*;
