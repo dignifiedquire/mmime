@@ -1513,6 +1513,11 @@ pub unsafe fn mailimf_token_case_insensitive_len_parse(
     {
         return MAILIMF_ERROR_PARSE as libc::c_int;
     }
+
+    if token.is_null() || message.is_null() || strlen(message)>=cur_token {
+        return MAILIMF_ERROR_PARSE as libc::c_int;
+    }
+
     if strncasecmp(message.offset(cur_token as isize), token, token_length) == 0i32 {
         cur_token = (cur_token as libc::size_t).wrapping_add(token_length) as size_t as size_t;
         *indx = cur_token;
