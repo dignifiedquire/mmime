@@ -1,7 +1,5 @@
 use libc;
 
-use crate::other::*;
-
 #[derive(Clone, Default)]
 pub struct clist(pub Vec<*mut libc::c_void>);
 
@@ -26,14 +24,6 @@ impl std::ops::Deref for clist {
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-impl Drop for clist {
-    fn drop(&mut self) {
-        for &el in &self.0 {
-            unsafe { free(el) };
-        }
     }
 }
 

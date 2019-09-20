@@ -1107,9 +1107,7 @@ unsafe fn mailmime_part_write_driver(
                         16754986508692159943 => {}
                         _ => {
                             first = 1i32;
-                            if (*(*build_info).mm_data.mm_multipart.mm_mp_list).is_empty() {
-                                current_block = 3546145585875536353;
-                            }
+                            current_block = 3546145585875536353;
                             for cur in (&*(*build_info).mm_data.mm_multipart.mm_mp_list).iter() {
                                 let subpart = *cur as *mut mailmime;
                                 if 0 == first {
@@ -1297,9 +1295,7 @@ unsafe fn mailmime_part_write_driver(
                         _ => {
                             if !(*build_info).mm_mime_fields.is_null() {
                                 let mut r_0: libc::c_int = 0;
-                                if (*(*(*build_info).mm_mime_fields).fld_list).is_empty() {
-                                    current_block = 562309032768341766;
-                                }
+                                current_block = 562309032768341766;
                                 for cur_0 in (&*(*(*build_info).mm_mime_fields).fld_list).iter() {
                                     let field = *cur_0 as *mut mailmime_field;
                                     if (*field).fld_type == MAILMIME_FIELD_VERSION as libc::c_int {
