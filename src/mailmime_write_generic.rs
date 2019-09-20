@@ -1,6 +1,5 @@
 use std::ffi::CStr;
 
-use crate::clist::*;
 use crate::mailimf_write_generic::*;
 use crate::mailmime::*;
 use crate::mailmime_content::*;
@@ -22,19 +21,11 @@ pub unsafe fn mailmime_fields_write_driver(
     mut fields: *mut mailmime_fields,
 ) -> libc::c_int {
     let mut r: libc::c_int = 0;
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
-    cur = (*(*fields).fld_list).first;
-    while !cur.is_null() {
-        let mut field: *mut mailmime_field = 0 as *mut mailmime_field;
-        field = (*cur).data as *mut mailmime_field;
+    for cur in (&*(*fields).fld_list).iter() {
+        let field = *cur as *mut mailmime_field;
         r = mailmime_field_write_driver(do_write, data, col, field);
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     return MAILIMF_NO_ERROR as libc::c_int;
@@ -142,7 +133,6 @@ unsafe fn mailmime_language_write_driver(
     mut language: *mut mailmime_language,
 ) -> libc::c_int {
     let mut r: libc::c_int = 0;
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     let mut first: libc::c_int = 0;
     r = mailimf_string_write_driver(
         do_write,
@@ -155,16 +145,9 @@ unsafe fn mailmime_language_write_driver(
         return r;
     }
     first = 1i32;
-    cur = (*(*language).lg_list).first;
-    while !cur.is_null() {
-        let mut lang: *mut libc::c_char = 0 as *mut libc::c_char;
-        let mut len: size_t = 0;
-        lang = (if !cur.is_null() {
-            (*cur).data
-        } else {
-            0 as *mut libc::c_void
-        }) as *mut libc::c_char;
-        len = strlen(lang);
+    for cur in (&*(*language).lg_list).iter() {
+        let mut lang = *cur as *mut libc::c_char;
+        let len = strlen(lang);
         if 0 == first {
             r = mailimf_string_write_driver(
                 do_write,
@@ -197,11 +180,6 @@ unsafe fn mailmime_language_write_driver(
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
         }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
-        }
     }
     r = mailimf_string_write_driver(
         do_write,
@@ -225,7 +203,6 @@ unsafe fn mailmime_disposition_write_driver(
 ) -> libc::c_int {
     let mut dsp_type: *mut mailmime_disposition_type = 0 as *mut mailmime_disposition_type;
     let mut r: libc::c_int = 0;
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     dsp_type = (*disposition).dsp_type;
     r = mailimf_string_write_driver(
         do_write,
@@ -270,10 +247,8 @@ unsafe fn mailmime_disposition_write_driver(
     if r != MAILIMF_NO_ERROR as libc::c_int {
         return r;
     }
-    cur = (*(*disposition).dsp_parms).first;
-    while !cur.is_null() {
-        let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
-        param = (*cur).data as *mut mailmime_disposition_parm;
+    for cur in (&*(*disposition).dsp_parms).iter() {
+        let mut param = *cur as *mut mailmime_disposition_parm;
         r = mailimf_string_write_driver(
             do_write,
             data,
@@ -287,11 +262,6 @@ unsafe fn mailmime_disposition_write_driver(
         r = mailmime_disposition_param_write_driver(do_write, data, col, param);
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     r = mailimf_string_write_driver(
@@ -786,7 +756,6 @@ pub unsafe fn mailmime_content_type_write_driver(
     mut col: *mut libc::c_int,
     mut content: *mut mailmime_content,
 ) -> libc::c_int {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     let mut len: size_t = 0;
     let mut r: libc::c_int = 0;
     r = mailmime_type_write_driver(do_write, data, col, (*content).ct_type);
@@ -814,10 +783,8 @@ pub unsafe fn mailmime_content_type_write_driver(
         return r;
     }
     if !(*content).ct_parameters.is_null() {
-        cur = (*(*content).ct_parameters).first;
-        while !cur.is_null() {
-            let mut param: *mut mailmime_parameter = 0 as *mut mailmime_parameter;
-            param = (*cur).data as *mut mailmime_parameter;
+        for cur in (&*(*content).ct_parameters).iter() {
+            let mut param = *cur as *mut mailmime_parameter;
             r = mailimf_string_write_driver(
                 do_write,
                 data,
@@ -848,11 +815,6 @@ pub unsafe fn mailmime_content_type_write_driver(
             r = mailmime_parameter_write_driver(do_write, data, col, param);
             if r != MAILIMF_NO_ERROR as libc::c_int {
                 return r;
-            }
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
             }
         }
     }
@@ -1041,7 +1003,6 @@ unsafe fn mailmime_part_write_driver(
     mut build_info: *mut mailmime,
 ) -> libc::c_int {
     let mut current_block: u64;
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     let mut first: libc::c_int = 0;
     let mut r: libc::c_int = 0;
     let mut boundary: *mut libc::c_char = 0 as *mut libc::c_char;
@@ -1146,14 +1107,9 @@ unsafe fn mailmime_part_write_driver(
                         16754986508692159943 => {}
                         _ => {
                             first = 1i32;
-                            cur = (*(*build_info).mm_data.mm_multipart.mm_mp_list).first;
-                            loop {
-                                if cur.is_null() {
-                                    current_block = 3546145585875536353;
-                                    break;
-                                }
-                                let mut subpart: *mut mailmime = 0 as *mut mailmime;
-                                subpart = (*cur).data as *mut mailmime;
+                            current_block = 3546145585875536353;
+                            for cur in (&*(*build_info).mm_data.mm_multipart.mm_mp_list).iter() {
+                                let subpart = *cur as *mut mailmime;
                                 if 0 == first {
                                     r = mailimf_string_write_driver(
                                         do_write,
@@ -1217,12 +1173,6 @@ unsafe fn mailmime_part_write_driver(
                                                 res = r;
                                                 current_block = 16754986508692159943;
                                                 break;
-                                            } else {
-                                                cur = if !cur.is_null() {
-                                                    (*cur).next
-                                                } else {
-                                                    0 as *mut clistcell
-                                                }
                                             }
                                         }
                                     }
@@ -1345,15 +1295,9 @@ unsafe fn mailmime_part_write_driver(
                         _ => {
                             if !(*build_info).mm_mime_fields.is_null() {
                                 let mut r_0: libc::c_int = 0;
-                                let mut cur_0: *mut clistiter = 0 as *mut clistiter;
-                                cur_0 = (*(*(*build_info).mm_mime_fields).fld_list).first;
-                                loop {
-                                    if cur_0.is_null() {
-                                        current_block = 562309032768341766;
-                                        break;
-                                    }
-                                    let mut field: *mut mailmime_field = 0 as *mut mailmime_field;
-                                    field = (*cur_0).data as *mut mailmime_field;
+                                current_block = 562309032768341766;
+                                for cur_0 in (&*(*(*build_info).mm_mime_fields).fld_list).iter() {
+                                    let field = *cur_0 as *mut mailmime_field;
                                     if (*field).fld_type == MAILMIME_FIELD_VERSION as libc::c_int {
                                         r_0 =
                                             mailmime_field_write_driver(do_write, data, col, field);
@@ -1362,11 +1306,6 @@ unsafe fn mailmime_part_write_driver(
                                             current_block = 16754986508692159943;
                                             break;
                                         }
-                                    }
-                                    cur_0 = if !cur_0.is_null() {
-                                        (*cur_0).next
-                                    } else {
-                                        0 as *mut clistcell
                                     }
                                 }
                             } else {
@@ -1439,21 +1378,13 @@ unsafe fn mailmime_sub_write_driver(
         }
     } else if !(*build_info).mm_mime_fields.is_null() {
         let mut r_0: libc::c_int = 0;
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
-        cur = (*(*(*build_info).mm_mime_fields).fld_list).first;
-        while !cur.is_null() {
-            let mut field: *mut mailmime_field = 0 as *mut mailmime_field;
-            field = (*cur).data as *mut mailmime_field;
+        for cur in (&*(*(*build_info).mm_mime_fields).fld_list).iter() {
+            let mut field = *cur as *mut mailmime_field;
             if (*field).fld_type != MAILMIME_FIELD_VERSION as libc::c_int {
                 r_0 = mailmime_field_write_driver(do_write, data, col, field);
                 if r_0 != MAILIMF_NO_ERROR as libc::c_int {
                     return r_0;
                 }
-            }
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
             }
         }
     }

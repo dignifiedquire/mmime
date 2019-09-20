@@ -28,15 +28,8 @@ pub unsafe fn mailimf_fields_add(
     mut fields: *mut mailimf_fields,
     mut field: *mut mailimf_field,
 ) -> libc::c_int {
-    let mut r: libc::c_int = 0;
-    r = clist_insert_after(
-        (*fields).fld_list,
-        (*(*fields).fld_list).last,
-        field as *mut libc::c_void,
-    );
-    if r < 0i32 {
-        return MAILIMF_ERROR_MEMORY as libc::c_int;
-    }
+    clist_insert_end((*fields).fld_list, field as *mut libc::c_void);
+
     return MAILIMF_NO_ERROR as libc::c_int;
 }
 

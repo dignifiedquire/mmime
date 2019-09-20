@@ -133,7 +133,6 @@ pub const MAILIMF_ERROR_PARSE: libc::c_uint = 1;
 pub const MAILIMF_NO_ERROR: libc::c_uint = 0;
 
 pub unsafe fn mailprivacy_prepare_mime(mut mime: *mut mailmime) {
-    let mut cur: *mut clistiter = 0 as *mut clistiter;
     match (*mime).mm_type {
         1 => {
             if !(*mime).mm_data.mm_single.is_null() {
@@ -141,20 +140,9 @@ pub unsafe fn mailprivacy_prepare_mime(mut mime: *mut mailmime) {
             }
         }
         2 => {
-            cur = (*(*mime).mm_data.mm_multipart.mm_mp_list).first;
-            while !cur.is_null() {
-                let mut child: *mut mailmime = 0 as *mut mailmime;
-                child = (if !cur.is_null() {
-                    (*cur).data
-                } else {
-                    0 as *mut libc::c_void
-                }) as *mut mailmime;
+            for cur in (&*(*mime).mm_data.mm_multipart.mm_mp_list).iter() {
+                let mut child = *cur as *mut mailmime;
                 mailprivacy_prepare_mime(child);
-                cur = if !cur.is_null() {
-                    (*cur).next
-                } else {
-                    0 as *mut clistcell
-                }
             }
         }
         3 => {
@@ -227,15 +215,10 @@ unsafe fn prepare_mime_single(mut mime: *mut mailmime) {
                 mailmime_mechanism_free(mechanism);
                 return;
             }
-            r = clist_insert_after(
+            clist_insert_end(
                 (*(*mime).mm_mime_fields).fld_list,
-                (*(*(*mime).mm_mime_fields).fld_list).last,
                 field as *mut libc::c_void,
             );
-            if r < 0i32 {
-                mailmime_field_free(field);
-                return;
-            }
         }
     }
     if (*mime).mm_type == MAILMIME_SINGLE as libc::c_int {
@@ -262,7 +245,8 @@ pub unsafe fn mailmime_substitute(
     if (*old_mime).mm_parent_type == MAILMIME_MESSAGE as libc::c_int {
         (*parent).mm_data.mm_message.mm_msg_mime = new_mime
     } else {
-        (*(*old_mime).mm_multipart_pos).data = new_mime as *mut libc::c_void
+        let i = (*old_mime).mm_multipart_list_pos;
+        (*(*old_mime).mm_multipart_list).0[i] = new_mime as *mut libc::c_void;
     }
     (*new_mime).mm_parent = parent;
     (*new_mime).mm_parent_type = (*old_mime).mm_parent_type;
@@ -314,17 +298,8 @@ pub unsafe fn mailimf_mailbox_list_new_empty() -> *mut mailimf_mailbox_list {
 pub unsafe fn mailimf_mailbox_list_add(
     mut mailbox_list: *mut mailimf_mailbox_list,
     mut mb: *mut mailimf_mailbox,
-) -> libc::c_int {
-    let mut r: libc::c_int = 0;
-    r = clist_insert_after(
-        (*mailbox_list).mb_list,
-        (*(*mailbox_list).mb_list).last,
-        mb as *mut libc::c_void,
-    );
-    if r < 0i32 {
-        return MAILIMF_ERROR_MEMORY as libc::c_int;
-    }
-    return MAILIMF_NO_ERROR as libc::c_int;
+) {
+    clist_insert_end((*mailbox_list).mb_list, mb as *mut libc::c_void)
 }
 
 /*
@@ -336,17 +311,8 @@ pub unsafe fn mailimf_mailbox_list_add(
 pub unsafe fn mailimf_address_list_add(
     mut address_list: *mut mailimf_address_list,
     mut addr: *mut mailimf_address,
-) -> libc::c_int {
-    let mut r: libc::c_int = 0;
-    r = clist_insert_after(
-        (*address_list).ad_list,
-        (*(*address_list).ad_list).last,
-        addr as *mut libc::c_void,
-    );
-    if r < 0i32 {
-        return MAILIMF_ERROR_MEMORY as libc::c_int;
-    }
-    return MAILIMF_NO_ERROR as libc::c_int;
+) {
+    clist_insert_end((*address_list).ad_list, addr as *mut libc::c_void);
 }
 
 /*

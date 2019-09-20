@@ -2527,14 +2527,25 @@ unsafe fn mailimf_struct_list_parse(
             destructor.expect("non-null function pointer")(value);
             res = MAILIMF_ERROR_MEMORY as libc::c_int
         } else {
-            r = clist_insert_after(struct_list, (*struct_list).last, value);
-            if r < 0i32 {
-                destructor.expect("non-null function pointer")(value);
-                res = MAILIMF_ERROR_MEMORY as libc::c_int
-            } else {
-                final_token = cur_token;
-                loop {
-                    r = mailimf_unstrict_char_parse(message, length, &mut cur_token, symbol);
+            clist_insert_end(struct_list, value);
+            final_token = cur_token;
+            loop {
+                r = mailimf_unstrict_char_parse(message, length, &mut cur_token, symbol);
+                if r != MAILIMF_NO_ERROR as libc::c_int {
+                    if r == MAILIMF_ERROR_PARSE as libc::c_int {
+                        current_block = 9853141518545631134;
+                        break;
+                    }
+                    res = r;
+                    current_block = 17524159567010234572;
+                    break;
+                } else {
+                    r = parser.expect("non-null function pointer")(
+                        message,
+                        length,
+                        &mut cur_token,
+                        &mut value as *mut *mut libc::c_void as *mut libc::c_void,
+                    );
                     if r != MAILIMF_NO_ERROR as libc::c_int {
                         if r == MAILIMF_ERROR_PARSE as libc::c_int {
                             current_block = 9853141518545631134;
@@ -2544,42 +2555,20 @@ unsafe fn mailimf_struct_list_parse(
                         current_block = 17524159567010234572;
                         break;
                     } else {
-                        r = parser.expect("non-null function pointer")(
-                            message,
-                            length,
-                            &mut cur_token,
-                            &mut value as *mut *mut libc::c_void as *mut libc::c_void,
-                        );
-                        if r != MAILIMF_NO_ERROR as libc::c_int {
-                            if r == MAILIMF_ERROR_PARSE as libc::c_int {
-                                current_block = 9853141518545631134;
-                                break;
-                            }
-                            res = r;
-                            current_block = 17524159567010234572;
-                            break;
-                        } else {
-                            r = clist_insert_after(struct_list, (*struct_list).last, value);
-                            if r < 0i32 {
-                                destructor.expect("non-null function pointer")(value);
-                                res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                                current_block = 17524159567010234572;
-                                break;
-                            } else {
-                                final_token = cur_token
-                            }
-                        }
-                    }
-                }
-                match current_block {
-                    17524159567010234572 => {}
-                    _ => {
-                        *result = struct_list;
-                        *indx = final_token;
-                        return MAILIMF_NO_ERROR as libc::c_int;
+                        clist_insert_end(struct_list, value);
+                        final_token = cur_token;
                     }
                 }
             }
+            match current_block {
+                17524159567010234572 => {}
+                _ => {
+                    *result = struct_list;
+                    *indx = final_token;
+                    return MAILIMF_NO_ERROR as libc::c_int;
+                }
+            }
+
             clist_foreach(
                 struct_list,
                 ::std::mem::transmute::<
@@ -4421,56 +4410,45 @@ unsafe fn mailimf_struct_multiple_parse(
             destructor.expect("non-null function pointer")(value);
             res = MAILIMF_ERROR_MEMORY as libc::c_int
         } else {
-            r = clist_insert_after(struct_list, (*struct_list).last, value);
-            if r < 0i32 {
-                destructor.expect("non-null function pointer")(value);
-                res = MAILIMF_ERROR_MEMORY as libc::c_int
-            } else {
-                loop {
-                    r = parser.expect("non-null function pointer")(
-                        message,
-                        length,
-                        &mut cur_token,
-                        &mut value as *mut *mut libc::c_void as *mut libc::c_void,
-                    );
-                    if r != MAILIMF_NO_ERROR as libc::c_int {
-                        if r == MAILIMF_ERROR_PARSE as libc::c_int {
-                            current_block = 11057878835866523405;
-                            break;
-                        }
-                        res = r;
-                        current_block = 8222683242185098763;
-                        break;
-                    } else {
-                        r = clist_insert_after(struct_list, (*struct_list).last, value);
-                        if !(r < 0i32) {
-                            continue;
-                        }
-                        destructor.expect("non-null function pointer")(value);
-                        res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                        current_block = 8222683242185098763;
+            clist_insert_end(struct_list, value);
+            loop {
+                r = parser.expect("non-null function pointer")(
+                    message,
+                    length,
+                    &mut cur_token,
+                    &mut value as *mut *mut libc::c_void as *mut libc::c_void,
+                );
+                if r != MAILIMF_NO_ERROR as libc::c_int {
+                    if r == MAILIMF_ERROR_PARSE as libc::c_int {
+                        current_block = 11057878835866523405;
                         break;
                     }
-                }
-                match current_block {
-                    8222683242185098763 => {}
-                    _ => {
-                        *result = struct_list;
-                        *indx = cur_token;
-                        return MAILIMF_NO_ERROR as libc::c_int;
-                    }
+                    res = r;
+                    current_block = 8222683242185098763;
+                    break;
+                } else {
+                    clist_insert_end(struct_list, value);
+                    continue;
                 }
             }
-            clist_foreach(
-                struct_list,
-                ::std::mem::transmute::<
-                    Option<unsafe fn(_: *mut libc::c_void) -> libc::c_int>,
-                    clist_func,
-                >(destructor),
-                0 as *mut libc::c_void,
-            );
-            clist_free(struct_list);
+            match current_block {
+                8222683242185098763 => {}
+                _ => {
+                    *result = struct_list;
+                    *indx = cur_token;
+                    return MAILIMF_NO_ERROR as libc::c_int;
+                }
+            }
         }
+        clist_foreach(
+            struct_list,
+            ::std::mem::transmute::<
+                Option<unsafe fn(_: *mut libc::c_void) -> libc::c_int>,
+                clist_func,
+            >(destructor),
+            0 as *mut libc::c_void,
+        );
+        clist_free(struct_list);
     }
     return res;
 }
@@ -5145,13 +5123,8 @@ pub unsafe fn mailimf_envelope_fields_parse(
             let mut elt: *mut mailimf_field = 0 as *mut mailimf_field;
             r = mailimf_envelope_field_parse(message, length, &mut cur_token, &mut elt);
             if r == MAILIMF_NO_ERROR as libc::c_int {
-                r = clist_insert_after(list, (*list).last, elt as *mut libc::c_void);
-                if !(r < 0i32) {
-                    continue;
-                }
-                res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                current_block = 894413572976700158;
-                break;
+                clist_insert_end(list, elt as *mut libc::c_void);
+                continue;
             } else if r == MAILIMF_ERROR_PARSE as libc::c_int {
                 r = mailimf_ignore_field_parse(message, length, &mut cur_token);
                 if r == MAILIMF_NO_ERROR as libc::c_int {
