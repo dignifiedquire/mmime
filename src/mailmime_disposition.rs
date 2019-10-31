@@ -1,7 +1,6 @@
 use libc;
 use libc::toupper;
 
-use crate::clist::*;
 use crate::mailimf::*;
 use crate::mailmime::*;
 use crate::mailmime_types::*;
@@ -22,7 +21,6 @@ pub unsafe fn mailmime_disposition_parse(
     let mut final_token: size_t = 0;
     let mut cur_token: size_t = 0;
     let mut dsp_type: *mut mailmime_disposition_type = 0 as *mut mailmime_disposition_type;
-    let mut list: *mut clist = 0 as *mut clist;
     let mut dsp: *mut mailmime_disposition = 0 as *mut mailmime_disposition;
     let mut r: libc::c_int = 0;
     let mut res: libc::c_int = 0;
@@ -31,77 +29,58 @@ pub unsafe fn mailmime_disposition_parse(
     if r != MAILIMF_NO_ERROR as libc::c_int {
         res = r
     } else {
-        list = clist_new();
-        if list.is_null() {
-            res = MAILIMF_ERROR_MEMORY as libc::c_int
-        } else {
-            loop {
-                let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
-                final_token = cur_token;
-                r = mailimf_unstrict_char_parse(
-                    message,
-                    length,
-                    &mut cur_token,
-                    ';' as i32 as libc::c_char,
-                );
+        let mut list = Vec::new();
+        loop {
+            let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
+            final_token = cur_token;
+            r = mailimf_unstrict_char_parse(
+                message,
+                length,
+                &mut cur_token,
+                ';' as i32 as libc::c_char,
+            );
+            if r == MAILIMF_NO_ERROR as libc::c_int {
+                param = 0 as *mut mailmime_disposition_parm;
+                r = mailmime_disposition_parm_parse(message, length, &mut cur_token, &mut param);
                 if r == MAILIMF_NO_ERROR as libc::c_int {
-                    param = 0 as *mut mailmime_disposition_parm;
-                    r = mailmime_disposition_parm_parse(
-                        message,
-                        length,
-                        &mut cur_token,
-                        &mut param,
-                    );
-                    if r == MAILIMF_NO_ERROR as libc::c_int {
-                        r = clist_insert_after(list, (*list).last, param as *mut libc::c_void);
-                        if !(r < 0i32) {
-                            continue;
-                        }
-                        res = MAILIMF_ERROR_MEMORY as libc::c_int;
-                        current_block = 18290070879695007868;
-                        break;
-                    } else if r == MAILIMF_ERROR_PARSE as libc::c_int {
-                        cur_token = final_token;
-                        current_block = 652864300344834934;
-                        break;
-                    } else {
-                        res = r;
-                        current_block = 18290070879695007868;
-                        break;
-                    }
+                    list.push(param);
+                    continue;
+                } else if r == MAILIMF_ERROR_PARSE as libc::c_int {
+                    cur_token = final_token;
+                    current_block = 652864300344834934;
+                    break;
                 } else {
-                    /* do nothing */
-                    if r == MAILIMF_ERROR_PARSE as libc::c_int {
-                        current_block = 652864300344834934;
-                        break;
-                    }
                     res = r;
                     current_block = 18290070879695007868;
                     break;
                 }
-            }
-            match current_block {
-                652864300344834934 => {
-                    dsp = mailmime_disposition_new(dsp_type, list);
-                    if dsp.is_null() {
-                        res = MAILIMF_ERROR_MEMORY as libc::c_int
-                    } else {
-                        *result = dsp;
-                        *indx = cur_token;
-                        return MAILIMF_NO_ERROR as libc::c_int;
-                    }
+            } else {
+                /* do nothing */
+                if r == MAILIMF_ERROR_PARSE as libc::c_int {
+                    current_block = 652864300344834934;
+                    break;
                 }
-                _ => {}
+                res = r;
+                current_block = 18290070879695007868;
+                break;
             }
-            clist_foreach(
-                list,
-                ::std::mem::transmute::<
-                    Option<unsafe fn(_: *mut mailmime_disposition_parm) -> ()>,
-                    clist_func,
-                >(Some(mailmime_disposition_parm_free)),
-                0 as *mut libc::c_void,
-            );
-            clist_free(list);
+        }
+        match current_block {
+            652864300344834934 => {
+                // FIXME: move list instead of cloning once error handling is rustified
+                dsp = mailmime_disposition_new(dsp_type, list.clone());
+                if dsp.is_null() {
+                    res = MAILIMF_ERROR_MEMORY as libc::c_int
+                } else {
+                    *result = dsp;
+                    *indx = cur_token;
+                    return MAILIMF_NO_ERROR as libc::c_int;
+                }
+            }
+            _ => {}
+        }
+        for &mut parm in &mut list {
+            mailmime_disposition_parm_free(parm);
         }
         mailmime_disposition_type_free(dsp_type);
     }

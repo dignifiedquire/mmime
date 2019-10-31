@@ -270,10 +270,7 @@ unsafe fn mailmime_disposition_write_driver(
     if r != MAILIMF_NO_ERROR as libc::c_int {
         return r;
     }
-    cur = (*(*disposition).dsp_parms).first;
-    while !cur.is_null() {
-        let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
-        param = (*cur).data as *mut mailmime_disposition_parm;
+    for &param in &(*disposition).dsp_parms {
         r = mailimf_string_write_driver(
             do_write,
             data,
@@ -287,11 +284,6 @@ unsafe fn mailmime_disposition_write_driver(
         r = mailmime_disposition_param_write_driver(do_write, data, col, param);
         if r != MAILIMF_NO_ERROR as libc::c_int {
             return r;
-        }
-        cur = if !cur.is_null() {
-            (*cur).next
-        } else {
-            0 as *mut clistcell
         }
     }
     r = mailimf_string_write_driver(

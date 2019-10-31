@@ -242,21 +242,8 @@ mod tests {
         };
     }
     unsafe fn display_mime_disposition(mut disposition: *mut mailmime_disposition) {
-        let mut cur: *mut clistiter = 0 as *mut clistiter;
-        cur = (*(*disposition).dsp_parms).first;
-        while !cur.is_null() {
-            let mut param: *mut mailmime_disposition_parm = 0 as *mut mailmime_disposition_parm;
-            param = (if !cur.is_null() {
-                (*cur).data
-            } else {
-                0 as *mut libc::c_void
-            }) as *mut mailmime_disposition_parm;
+        for &param in &(*disposition).dsp_parms {
             display_mime_dsp_parm(param);
-            cur = if !cur.is_null() {
-                (*cur).next
-            } else {
-                0 as *mut clistcell
-            }
         }
     }
     unsafe fn display_mime_field(mut field: *mut mailmime_field) {
